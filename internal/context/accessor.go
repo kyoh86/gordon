@@ -2,6 +2,8 @@ package context
 
 import (
 	"errors"
+
+	"github.com/kyoh86/ask"
 	"github.com/zalando/go-keyring"
 )
 
@@ -15,22 +17,18 @@ type OptionAccessor struct {
 	getter     func(cfg *Config) string
 	putter     func(cfg *Config, value string) error
 	unsetter   func(cfg *Config) error
+	prompt     func(cfg *Config) error
 }
 
 func (a OptionAccessor) Get(cfg *Config) string              { return a.getter(cfg) }
 func (a OptionAccessor) Put(cfg *Config, value string) error { return a.putter(cfg, value) }
 func (a OptionAccessor) Unset(cfg *Config) error             { return a.unsetter(cfg) }
+func (a OptionAccessor) Prompt(cfg *Config) error            { return a.prompt(cfg) }
 
 var (
 	configAccessor  map[string]OptionAccessor
 	optionNames     []string
 	optionAccessors = []OptionAccessor{
-		rootOptionAccessor,
-		archOptionAccessor,
-		osOptionAccessor,
-		gitHubHostOptionAccessor,
-		gitHubUserOptionAccessor,
-		gitHubTokenOptionAccessor,
 		logLevelOptionAccessor,
 		logDateOptionAccessor,
 		logTimeOptionAccessor,
@@ -38,6 +36,17 @@ var (
 		logLongFileOptionAccessor,
 		logShortFileOptionAccessor,
 		logUTCOptionAccessor,
+		gitHubHostOptionAccessor,
+		gitHubUserOptionAccessor,
+		gitHubTokenOptionAccessor,
+		historyFileOptionAccessor,
+		historySaveOptionAccessor,
+		extractModesOptionAccessor,
+		extractExcludeOptionAccessor,
+		extractIncludeOptionAccessor,
+		rootOptionAccessor,
+		architectureOptionAccessor,
+		osOptionAccessor,
 	}
 )
 
@@ -64,7 +73,174 @@ func OptionNames() []string {
 	return optionNames
 }
 
+func Options() []OptionAccessor {
+	return optionAccessors
+}
+
 var (
+	logLevelOptionAccessor = OptionAccessor{
+		optionName: "log.level",
+		getter: func(cfg *Config) string {
+			return cfg.LogLevel()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			if err := ValidateLogLevel(value); err != nil {
+				return err
+			}
+			cfg.Log.Level = value
+			return nil
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.Level = ""
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			var value string
+			doer := ask.Default(cfg.LogLevel()).Message("Logging severity levels").Enum([]string{
+				"trace",
+				"debug",
+				"info",
+				"warn",
+				"error",
+				"alert",
+				"panic",
+			}).Optional(true).Validation(ValidateLogLevel).StringVar(&value)
+			switch err := doer.Do(); err {
+			case nil:
+				// noop
+			case ask.ErrSkip:
+				return nil
+			default:
+				return err
+			}
+			cfg.Log.Level = value
+			return nil
+		},
+	}
+
+	logDateOptionAccessor = OptionAccessor{
+		optionName: "log.date",
+		getter: func(cfg *Config) string {
+			return cfg.Log.Date.String()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			return cfg.Log.Date.Decode(value)
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.Date = EmptyBoolOption
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.Log.Date, "Logging the date in the local time zone like '2009/01/23'")
+		},
+	}
+
+	logTimeOptionAccessor = OptionAccessor{
+		optionName: "log.time",
+		getter: func(cfg *Config) string {
+			return cfg.Log.Time.String()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			return cfg.Log.Time.Decode(value)
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.Time = EmptyBoolOption
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.Log.Time, "Logging the time in the local time zone like '01:23:23'")
+		},
+	}
+
+	logMicroSecondsOptionAccessor = OptionAccessor{
+		optionName: "log.microseconds",
+		getter: func(cfg *Config) string {
+			return cfg.Log.MicroSeconds.String()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			return cfg.Log.MicroSeconds.Decode(value)
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.MicroSeconds = EmptyBoolOption
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.Log.MicroSeconds, "Logging microsecond resolution like '01:23:23.123123'.  Assumes Log.Time.")
+		},
+	}
+
+	logLongFileOptionAccessor = OptionAccessor{
+		optionName: "log.longfile",
+		getter: func(cfg *Config) string {
+			return cfg.Log.LongFile.String()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			return cfg.Log.LongFile.Decode(value)
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.LongFile = EmptyBoolOption
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.Log.LongFile, "Logging full file name and line number: /a/b/c/d.go:23")
+		},
+	}
+
+	logShortFileOptionAccessor = OptionAccessor{
+		optionName: "log.shortfile",
+		getter: func(cfg *Config) string {
+			return cfg.Log.ShortFile.String()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			return cfg.Log.ShortFile.Decode(value)
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.ShortFile = EmptyBoolOption
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.Log.ShortFile, "Logging final file name element and line number: d.go:23. overrides Log.Longfile")
+		},
+	}
+
+	logUTCOptionAccessor = OptionAccessor{
+		optionName: "log.utc",
+		getter: func(cfg *Config) string {
+			return cfg.Log.UTC.String()
+		},
+		putter: func(cfg *Config, value string) error {
+			if value == "" {
+				return ErrEmptyValue
+			}
+			return cfg.Log.UTC.Decode(value)
+		},
+		unsetter: func(cfg *Config) error {
+			cfg.Log.UTC = EmptyBoolOption
+			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.Log.UTC, "If Log.Date or Log.Time is set, use UTC rather than the local time zone")
+		},
+	}
+
 	gitHubUserOptionAccessor = OptionAccessor{
 		optionName: "github.user",
 		getter: func(cfg *Config) string {
@@ -83,6 +259,9 @@ var (
 		unsetter: func(cfg *Config) error {
 			cfg.GitHub.User = ""
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "GitHub user name like 'kyoh86'", ValidateOwner, &cfg.GitHub.User)
 		},
 	}
 
@@ -103,6 +282,20 @@ var (
 		unsetter: func(cfg *Config) error {
 			return keyring.Delete(keyGordonServiceName, keyGordonGitHubToken)
 		},
+		prompt: func(cfg *Config) error {
+			var value string
+			doer := ask.Default(cfg.GitHubToken()).
+				Message("GitHub API token").Optional(true).Hidden(true).StringVar(&value)
+			switch err := doer.Do(); err {
+			case nil:
+				// noop
+			case ask.ErrSkip:
+				return nil
+			default:
+				return err
+			}
+			return keyring.Set(keyGordonServiceName, keyGordonGitHubToken, value)
+		},
 	}
 
 	gitHubHostOptionAccessor = OptionAccessor{
@@ -121,128 +314,138 @@ var (
 			cfg.GitHub.Host = ""
 			return nil
 		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "GitHub host name like 'github.com'", nil, &cfg.GitHub.Host)
+		},
 	}
 
-	logLevelOptionAccessor = OptionAccessor{
-		optionName: "log.level",
+	historyFileOptionAccessor = OptionAccessor{
+		optionName: "history.file",
 		getter: func(cfg *Config) string {
-			return cfg.LogLevel()
+			return cfg.History.File
 		},
 		putter: func(cfg *Config, value string) error {
 			if value == "" {
 				return ErrEmptyValue
 			}
-			if err := ValidateLogLevel(value); err != nil {
+			if err := ValidateFile(value); err != nil {
 				return err
 			}
-			cfg.Log.Level = value
+			cfg.History.File = value
 			return nil
 		},
 		unsetter: func(cfg *Config) error {
-			cfg.Log.Level = ""
+			cfg.History.File = ""
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "A file to save downloading history", ValidateFile, &cfg.History.File)
 		},
 	}
 
-	logDateOptionAccessor = OptionAccessor{
-		optionName: "log.date",
+	historySaveOptionAccessor = OptionAccessor{
+		optionName: "history.save",
 		getter: func(cfg *Config) string {
-			return cfg.Log.Date.String()
+			return cfg.History.Save.String()
 		},
 		putter: func(cfg *Config, value string) error {
 			if value == "" {
 				return ErrEmptyValue
 			}
-			return cfg.Log.Date.Decode(value)
+			return cfg.History.Save.Decode(value)
 		},
 		unsetter: func(cfg *Config) error {
-			cfg.Log.Date = EmptyBoolOption
+			cfg.History.Save = EmptyBoolOption
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return boolOptionPrompt(&cfg.History.Save, "Save downloading history to file")
 		},
 	}
 
-	logTimeOptionAccessor = OptionAccessor{
-		optionName: "log.time",
+	extractModesOptionAccessor = OptionAccessor{
+		optionName: "extract.modes",
 		getter: func(cfg *Config) string {
-			return cfg.Log.Time.String()
+			buf, _ := cfg.Extract.Modes.MarshalText()
+			return string(buf)
 		},
 		putter: func(cfg *Config, value string) error {
 			if value == "" {
 				return ErrEmptyValue
 			}
-			return cfg.Log.Time.Decode(value)
+			var m FileMode
+			if err := m.UnmarshalText([]byte(value)); err != nil {
+				return err
+			}
+			cfg.Extract.Modes = append(cfg.Extract.Modes, m)
+			return nil
 		},
 		unsetter: func(cfg *Config) error {
-			cfg.Log.Time = EmptyBoolOption
+			cfg.Extract.Modes = nil
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			text, err := cfg.Extract.Modes.MarshalText()
+			if err != nil {
+				return err
+			}
+			doer := ask.Default(string(text)).
+				Message("File mode filters for files to extract from downloaded archive").
+				Optional(true).Var(&cfg.Extract.Modes)
+			switch err := doer.Do(); err {
+			case ask.ErrSkip:
+				return nil
+			default:
+				return err
+			}
 		},
 	}
 
-	logMicroSecondsOptionAccessor = OptionAccessor{
-		optionName: "log.microseconds",
+	extractExcludeOptionAccessor = OptionAccessor{
+		optionName: "extract.exclude",
 		getter: func(cfg *Config) string {
-			return cfg.Log.MicroSeconds.String()
+			return cfg.Extract.Exclude
 		},
 		putter: func(cfg *Config, value string) error {
 			if value == "" {
 				return ErrEmptyValue
 			}
-			return cfg.Log.MicroSeconds.Decode(value)
+			if err := ValidateRegexp(value); err != nil {
+				return err
+			}
+			cfg.Extract.Exclude = value
+			return nil
 		},
 		unsetter: func(cfg *Config) error {
-			cfg.Log.MicroSeconds = EmptyBoolOption
+			cfg.Extract.Exclude = ""
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "File exclusion filter for files to extract from downloaded archive", ValidateRegexp, &cfg.Extract.Exclude)
 		},
 	}
 
-	logLongFileOptionAccessor = OptionAccessor{
-		optionName: "log.longfile",
+	extractIncludeOptionAccessor = OptionAccessor{
+		optionName: "extract.include",
 		getter: func(cfg *Config) string {
-			return cfg.Log.LongFile.String()
+			return cfg.Extract.Include
 		},
 		putter: func(cfg *Config, value string) error {
 			if value == "" {
 				return ErrEmptyValue
 			}
-			return cfg.Log.LongFile.Decode(value)
-		},
-		unsetter: func(cfg *Config) error {
-			cfg.Log.LongFile = EmptyBoolOption
-			return nil
-		},
-	}
-
-	logShortFileOptionAccessor = OptionAccessor{
-		optionName: "log.shortfile",
-		getter: func(cfg *Config) string {
-			return cfg.Log.ShortFile.String()
-		},
-		putter: func(cfg *Config, value string) error {
-			if value == "" {
-				return ErrEmptyValue
+			if err := ValidateRegexp(value); err != nil {
+				return err
 			}
-			return cfg.Log.ShortFile.Decode(value)
-		},
-		unsetter: func(cfg *Config) error {
-			cfg.Log.ShortFile = EmptyBoolOption
+			cfg.Extract.Include = value
 			return nil
 		},
-	}
-
-	logUTCOptionAccessor = OptionAccessor{
-		optionName: "log.utc",
-		getter: func(cfg *Config) string {
-			return cfg.Log.UTC.String()
-		},
-		putter: func(cfg *Config, value string) error {
-			if value == "" {
-				return ErrEmptyValue
-			}
-			return cfg.Log.UTC.Decode(value)
-		},
 		unsetter: func(cfg *Config) error {
-			cfg.Log.UTC = EmptyBoolOption
+			cfg.Extract.Include = ""
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "File inclusion filter for files to extract from downloaded archive", ValidateRegexp, &cfg.Extract.Exclude)
 		},
 	}
 
@@ -265,26 +468,32 @@ var (
 			cfg.VRoot = ""
 			return nil
 		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "Root directory to store downloaded files", ValidateRoot, &cfg.VRoot)
+		},
 	}
 
-	archOptionAccessor = OptionAccessor{
-		optionName: "arch",
+	architectureOptionAccessor = OptionAccessor{
+		optionName: "architecture",
 		getter: func(cfg *Config) string {
-			return cfg.Arch()
+			return cfg.Architecture()
 		},
 		putter: func(cfg *Config, value string) error {
 			if value == "" {
 				return ErrEmptyValue
 			}
-			// TODO: if err := ValidateArch(value); err != nil {
-			// 	return err
-			// }
-			cfg.VArch = value
+			if err := ValidateArchitecture(value); err != nil {
+				return err
+			}
+			cfg.VArchitecture = value
 			return nil
 		},
 		unsetter: func(cfg *Config) error {
-			cfg.VArch = ""
+			cfg.VArchitecture = ""
 			return nil
+		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "Target architecture", ValidateArchitecture, &cfg.VArchitecture)
 		},
 	}
 
@@ -297,9 +506,9 @@ var (
 			if value == "" {
 				return ErrEmptyValue
 			}
-			// TODO: if err := ValidateOS(value); err != nil {
-			// return err
-			// }
+			if err := ValidateOS(value); err != nil {
+				return err
+			}
 			cfg.VOS = value
 			return nil
 		},
@@ -307,5 +516,41 @@ var (
 			cfg.VOS = ""
 			return nil
 		},
+		prompt: func(cfg *Config) error {
+			return stringOptionPrompt(cfg, "Target OS", ValidateOS, &cfg.VOS)
+		},
 	}
 )
+
+func boolOptionPrompt(opt *BoolOption, msg string) error {
+	var value bool
+	doer := ask.Default(opt.String()).Message(msg).Optional(true).YesNoVar(&value)
+	switch err := doer.Do(); err {
+	case nil:
+		// noop
+	case ask.ErrSkip:
+		return nil
+	default:
+		return err
+	}
+	opt.SetBool(value)
+	return nil
+}
+
+func stringOptionPrompt(cfg *Config, msg string, validator func(string) error, target *string) error {
+	var value string
+	asker := ask.Default(*target).Message(msg).Optional(true)
+	if validator != nil {
+		asker = asker.Validation(validator)
+	}
+	switch err := asker.StringVar(&value).Do(); err {
+	case nil:
+		// noop
+	case ask.ErrSkip:
+		return nil
+	default:
+		return err
+	}
+	*target = value
+	return nil
+}

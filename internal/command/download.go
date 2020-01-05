@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/kyoh86/gordon/internal/archive"
 	"github.com/kyoh86/gordon/internal/context"
 	"github.com/kyoh86/gordon/internal/gh"
+	"github.com/kyoh86/gordon/internal/history"
 )
 
 // Download a package from GitHub Release.
@@ -31,20 +33,21 @@ func Download(ctx context.Context, repo *gogh.Repo, tag string) error {
 		}
 		release = rel
 	}
-	//TODO: store download history with options
+	if err := history.SaveHistory(ctx, repo, tag); err != nil {
+		log.Printf("warn: failed to save history %v", err)
+	}
 	//TODO: accept exclusion (asset name | tag) pattern
 	//TODO: accept inclusion (asset name) pattern (e.g. *.ttf)
-	//TODO: set download-root temporarily
 	for _, asset := range release.Assets {
-		if starter := assetOpener(ctx, asset); starter != nil {
-			return download(ctx, repo, asset, starter)
+		if opener := assetOpener(ctx, asset); opener != nil {
+			return download(ctx, repo, asset, opener)
 		}
 	}
 	return fmt.Errorf("there's no installable asset in release %s", release.GetTagName())
 }
 
 func assetOpener(ctx context.Context, asset github.ReleaseAsset) archive.Opener {
-	if !strings.Contains(asset.GetName(), ctx.Arch()) {
+	if !strings.Contains(asset.GetName(), ctx.Architecture()) {
 		return nil
 	}
 	if !strings.Contains(asset.GetName(), ctx.OS()) {
@@ -64,14 +67,14 @@ func assetOpener(ctx context.Context, asset github.ReleaseAsset) archive.Opener 
 	return nil
 }
 
-func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, starter archive.Opener) error {
+func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener) error {
 	reader, err := gh.Asset(ctx, repo, asset.GetID())
 	if err != nil {
 		return err
 	}
 	defer reader.Close()
 
-	arch, err := starter(reader)
+	arch, err := opener(reader)
 	if err != nil {
 		return err
 	}

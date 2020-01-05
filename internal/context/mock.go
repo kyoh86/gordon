@@ -12,9 +12,6 @@ type MockContext struct {
 	MStdin           io.Reader
 	MStdout          io.Writer
 	MStderr          io.Writer
-	MGitHubUser      string
-	MGitHubToken     string
-	MGitHubHost      string
 	MLogLevel        string
 	MLogFlags        int
 	MLogDate         bool
@@ -23,8 +20,16 @@ type MockContext struct {
 	MLogLongFile     bool
 	MLogShortFile    bool
 	MLogUTC          bool
+	MGitHubUser      string
+	MGitHubToken     string
+	MGitHubHost      string
+	MHistoryFile     string
+	MHistorySave     bool
+	MExtractModes    FileModes
+	MExtractExclude  string
+	MExtractInclude  string
 	MRoot            string
-	MArch            string
+	MArchitecture    string
 	MOS              string
 }
 
@@ -49,32 +54,22 @@ func (c *MockContext) Stderr() io.Writer {
 	return ioutil.Discard
 }
 
-func (c *MockContext) GitHubUser() string {
-	return c.MGitHubUser
-}
-
-func (c *MockContext) GitHubToken() string {
-	return c.MGitHubToken
-}
-
-func (c *MockContext) GitHubHost() string {
-	return c.MGitHubHost
-}
-
-func (c *MockContext) LogLevel() string {
-	return c.MLogLevel
-}
-
-func (c *MockContext) LogFlags() int {
-	return c.MLogFlags
-}
-
-func (c *MockContext) LogDate() bool         { return c.MLogDate }
-func (c *MockContext) LogTime() bool         { return c.MLogTime }
-func (c *MockContext) LogMicroSeconds() bool { return c.MLogMicroSeconds }
-func (c *MockContext) LogLongFile() bool     { return c.MLogLongFile }
-func (c *MockContext) LogShortFile() bool    { return c.MLogShortFile }
-func (c *MockContext) LogUTC() bool          { return c.MLogUTC }
-func (c *MockContext) Root() string          { return c.MRoot }
-func (c *MockContext) Arch() string          { return c.MArch }
-func (c *MockContext) OS() string            { return c.MOS }
+func (c *MockContext) LogLevel() string        { return c.MLogLevel }
+func (c *MockContext) LogFlags() int           { return c.MLogFlags }
+func (c *MockContext) LogDate() bool           { return c.MLogDate }
+func (c *MockContext) LogTime() bool           { return c.MLogTime }
+func (c *MockContext) LogMicroSeconds() bool   { return c.MLogMicroSeconds }
+func (c *MockContext) LogLongFile() bool       { return c.MLogLongFile }
+func (c *MockContext) LogShortFile() bool      { return c.MLogShortFile }
+func (c *MockContext) LogUTC() bool            { return c.MLogUTC }
+func (c *MockContext) GitHubUser() string      { return c.MGitHubUser }
+func (c *MockContext) GitHubToken() string     { return c.MGitHubToken }
+func (c *MockContext) GitHubHost() string      { return c.MGitHubHost }
+func (c *MockContext) HistoryFile() string     { return c.MHistoryFile }
+func (c *MockContext) HistorySave() bool       { return c.MHistorySave }
+func (c *MockContext) ExtractModes() FileModes { return c.MExtractModes }
+func (c *MockContext) ExtractExclude() string  { return c.MExtractExclude }
+func (c *MockContext) ExtractInclude() string  { return c.MExtractInclude }
+func (c *MockContext) Root() string            { return c.MRoot }
+func (c *MockContext) Architecture() string    { return c.MArchitecture }
+func (c *MockContext) OS() string              { return c.MOS }
