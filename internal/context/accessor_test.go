@@ -37,7 +37,7 @@ func TestAccessor(t *testing.T) {
 
 		_, err := Option("invalid name")
 		assert.EqualError(t, err, "invalid option name")
-		assert.Equal(t, dummyToken, mustOption(Option("github.token")).Get(&cfg))
+		assert.Equal(t, "*****", mustOption(Option("github.token")).Get(&cfg))
 		assert.Equal(t, dummyHost, mustOption(Option("github.host")).Get(&cfg))
 		assert.Equal(t, dummyUser, mustOption(Option("github.user")).Get(&cfg))
 		assert.Equal(t, dummyLevel, mustOption(Option("log.level")).Get(&cfg))
@@ -47,10 +47,12 @@ func TestAccessor(t *testing.T) {
 		assert.Equal(t, "yes", mustOption(Option("log.longfile")).Get(&cfg))
 		assert.Equal(t, "yes", mustOption(Option("log.shortfile")).Get(&cfg))
 		assert.Equal(t, "yes", mustOption(Option("log.utc")).Get(&cfg))
+		assert.Equal(t, "*****", mustOption(Option("github.token")).Get(&cfg))
 		assert.Equal(t, "/foo", mustOption(Option("root")).Get(&cfg))
 		assert.Equal(t, "arch", mustOption(Option("arch")).Get(&cfg))
 		assert.Equal(t, "os", mustOption(Option("os")).Get(&cfg))
 	})
+
 	t.Run("putting", func(t *testing.T) {
 		mustOption := func(acc *OptionAccessor, err error) *OptionAccessor {
 			t.Helper()
@@ -98,8 +100,6 @@ func TestAccessor(t *testing.T) {
 			return acc
 		}
 		var cfg Config
-		assert.EqualError(t, mustOption(Option("github.token")).Put(&cfg, dummyToken), "token must not save")
-
 		assert.EqualError(t, mustOption(Option("github.host")).Put(&cfg, ""), "empty value")
 		assert.EqualError(t, mustOption(Option("github.user")).Put(&cfg, ""), "empty value")
 		assert.EqualError(t, mustOption(Option("log.level")).Put(&cfg, ""), "empty value")
@@ -139,7 +139,6 @@ func TestAccessor(t *testing.T) {
 
 	t.Run("unsetting", func(t *testing.T) {
 		var cfg Config
-		cfg.GitHub.Token = dummyToken
 		cfg.GitHub.Host = dummyHost
 		cfg.GitHub.User = dummyUser
 		cfg.Log.Level = dummyLevel
@@ -156,11 +155,13 @@ func TestAccessor(t *testing.T) {
 		_, err := Option("invalid name")
 		assert.EqualError(t, err, "invalid option name")
 		for _, name := range OptionNames() {
+			if name == gitHubTokenOptionAccessor.optionName {
+				continue
+			}
 			acc, err := Option(name)
 			require.NoError(t, err)
 			assert.NoError(t, acc.Unset(&cfg), name)
 		}
-		assert.Equal(t, "", cfg.GitHub.Token)
 		assert.Equal(t, "", cfg.GitHub.Host)
 		assert.Equal(t, "", cfg.GitHub.User)
 		assert.Equal(t, "", cfg.Log.Level)

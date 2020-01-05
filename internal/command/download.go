@@ -35,7 +35,6 @@ func Download(ctx context.Context, repo *gogh.Repo, tag string) error {
 	//TODO: accept exclusion (asset name | tag) pattern
 	//TODO: accept inclusion (asset name) pattern (e.g. *.ttf)
 	//TODO: set download-root temporarily
-	//TODO: split command (this should be not covered by gogh. "god" command)
 	for _, asset := range release.Assets {
 		if starter := assetOpener(ctx, asset); starter != nil {
 			return download(ctx, repo, asset, starter)
