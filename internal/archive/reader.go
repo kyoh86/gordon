@@ -31,11 +31,14 @@ var _ Unarchiver = &TarUnarchiver{} // interface assertion
 
 func (u *TarUnarchiver) Walk(walker Walker) error {
 	header, err := u.reader.Next()
-	for err != nil {
+	for err == nil {
 		if err := walker(header.FileInfo(), nopEntry(u.reader)); err != nil {
 			return err
 		}
 		header, err = u.reader.Next()
+	}
+	if err == io.EOF {
+		return nil
 	}
 	return err
 }

@@ -2,6 +2,7 @@ package context
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -21,6 +22,14 @@ func (c BoolOption) Bool() bool {
 	return c == TrueOption
 }
 
+func (c *BoolOption) SetBool(b bool) {
+	if b {
+		*c = TrueOption
+	} else {
+		*c = FalseOption
+	}
+}
+
 // Decode implements the interface `envdecode.Decoder`
 func (c *BoolOption) Decode(repl string) error {
 	switch strings.ToLower(repl) {
@@ -31,16 +40,22 @@ func (c *BoolOption) Decode(repl string) error {
 	return errors.New("invalid type")
 }
 
-// MarshalYAML implements the interface `yaml.Marshaler`
-func (c BoolOption) MarshalYAML() (interface{}, error) {
-	return string(c), nil
+// MarshalText implements the interface `encoding.TextMarshaler`
+func (c BoolOption) MarshalText() ([]byte, error) {
+	return []byte(c), nil
 }
 
-// UnmarshalYAML implements the interface `yaml.Unmarshaler`
-func (c *BoolOption) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var parsed string
-	if err := unmarshal(&parsed); err != nil {
-		return err
+// UnmarshalText implements the interface `encoding.TextUnmarshaler`
+func (c *BoolOption) UnmarshalText(raw []byte) error {
+	switch string(raw) {
+	case "yes":
+		*c = TrueOption
+	case "no":
+		*c = FalseOption
+	case "":
+		*c = EmptyBoolOption
+	default:
+		return fmt.Errorf("invalid bool option %#v", string(raw))
 	}
-	return c.Decode(parsed)
+	return nil
 }

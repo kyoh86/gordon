@@ -13,8 +13,13 @@ func MergeConfig(base *Config, override ...*Config) *Config {
 		c.GitHub.Token = mergeStringOption(c.GitHub.Token, o.GitHub.Token)
 		c.GitHub.User = mergeStringOption(c.GitHub.User, o.GitHub.User)
 		c.GitHub.Host = mergeStringOption(c.GitHub.Host, o.GitHub.Host)
+		c.History.File = mergeStringOption(c.History.File, o.History.File)
+		c.History.Save = mergeBoolOption(c.History.Save, o.History.Save)
+		c.Extract.Modes = mergeModesOption(c.Extract.Modes, o.Extract.Modes)
+		c.Extract.Exclude = mergeStringOption(c.Extract.Exclude, o.Extract.Exclude)
+		c.Extract.Include = mergeStringOption(c.Extract.Include, o.Extract.Include)
 		c.VRoot = mergeStringOption(c.VRoot, o.VRoot)
-		c.VArch = mergeStringOption(c.VArch, o.VArch)
+		c.VArchitecture = mergeStringOption(c.VArchitecture, o.VArchitecture)
 		c.VOS = mergeStringOption(c.VOS, o.VOS)
 	}
 	return &c
@@ -33,6 +38,13 @@ func mergeBoolOption(base, override BoolOption) BoolOption {
 
 func mergeStringOption(base, override string) string {
 	if override != "" {
+		return override
+	}
+	return base
+}
+
+func mergeModesOption(base, override FileModes) FileModes {
+	if len(override) > 0 {
 		return override
 	}
 	return base

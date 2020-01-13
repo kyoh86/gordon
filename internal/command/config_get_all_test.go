@@ -21,24 +21,38 @@ func ExampleConfigGetAll() {
 			ShortFile:    context.TrueOption,
 			UTC:          context.TrueOption,
 		},
-		VRoot: "/foo",
-		VArch: "arch",
-		VOS:   "os",
+		History: context.HistoryConfig{
+			File: "/var/log/gordon/history",
+			Save: context.TrueOption,
+		},
+		Extract: context.ExtractConfig{
+			Modes:   []context.FileMode{0111},
+			Exclude: "exclude",
+			Include: "include",
+		},
+		VRoot:         "/foo",
+		VArchitecture: "arch",
+		VOS:           "os",
 	}); err != nil {
 		panic(err)
 	}
 	// Unordered output:
-	// root = /foo
-	// arch = arch
-	// os = os
-	// github.host = hostx1
-	// github.user = kyoh86
-	// github.token = *****
-	// log.level = trace
-	// log.date = yes
-	// log.time = no
-	// log.microseconds = yes
-	// log.longfile = yes
-	// log.shortfile = yes
-	// log.utc = yes
+	// log.level: trace
+	// log.date: yes
+	// log.time: no
+	// log.microseconds: yes
+	// log.longfile: yes
+	// log.shortfile: yes
+	// log.utc: yes
+	// github.host: hostx1
+	// github.user: kyoh86
+	// github.token: *****
+	// history.file: /var/log/gordon/history
+	// history.save: yes
+	// extract.modes: 0111
+	// extract.exclude: exclude
+	// extract.include: include
+	// root: /foo
+	// architecture: arch
+	// os: os
 }

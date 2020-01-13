@@ -15,7 +15,6 @@ func NewClient(ctx context.Context) (*github.Client, error) {
 		url := fmt.Sprintf("https://%s/api/v3", host)
 		return github.NewEnterpriseClient(url, url, oauth2Client(ctx))
 	}
-
 	return github.NewClient(oauth2Client(ctx)), nil
 }
 

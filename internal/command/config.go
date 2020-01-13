@@ -10,7 +10,7 @@ func ConfigGetAll(cfg *context.Config) error {
 	for _, name := range context.OptionNames() {
 		opt, _ := context.Option(name) // ignore error: context.OptionNames covers all accessor
 		value := opt.Get(cfg)
-		fmt.Printf("%s = %s\n", name, value)
+		fmt.Printf("%s: %s\n", name, value)
 	}
 	return nil
 }
@@ -30,7 +30,10 @@ func ConfigPut(cfg *context.Config, optionName, optionValue string) error {
 	if err != nil {
 		return err
 	}
-	return opt.Put(cfg, optionValue)
+	if err := opt.Put(cfg, optionValue); err != nil {
+		return err
+	}
+	return nil
 }
 
 func ConfigUnset(cfg *context.Config, optionName string) error {
@@ -39,4 +42,13 @@ func ConfigUnset(cfg *context.Config, optionName string) error {
 		return err
 	}
 	return opt.Unset(cfg)
+}
+
+func ConfigPrompt(cfg *context.Config) error {
+	for _, opt := range context.Options() {
+		if err := opt.Prompt(cfg); err != nil {
+			return err
+		}
+	}
+	return nil
 }

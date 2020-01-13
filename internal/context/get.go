@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"path/filepath"
 	"runtime"
 
 	"github.com/joeshaw/envdecode"
@@ -23,8 +24,13 @@ var (
 	envGordonGitHubUser      = "GORDON_GITHUB_USER"
 	envGordonGitHubToken     = "GORDON_GITHUB_TOKEN"
 	envGordonGitHubHost      = "GORDON_GITHUB_HOST"
+	envGordonHistoryFile     = "GORDON_HISTORY_FILE"
+	envGordonHistorySave     = "GORDON_HISTORY_SAVE"
+	envGordonExtractModes    = "GORDON_EXTRACT_MODES"
+	envGordonExtractExclude  = "GORDON_EXTRACT_EXCLUDE"
+	envGordonExtractInclude  = "GORDON_EXTRACT_INCLUDE"
 	envGordonRoot            = "GORDON_ROOT"
-	envGordonArch            = "GORDON_ARCH"
+	envGordonArchitecture    = "GORDON_ARCHITECTURE"
 	envGordonOS              = "GORDON_OS"
 	envNames                 = []string{
 		envGordonLogLevel,
@@ -37,8 +43,13 @@ var (
 		envGordonGitHubUser,
 		envGordonGitHubToken,
 		envGordonGitHubHost,
+		envGordonHistoryFile,
+		envGordonHistorySave,
+		envGordonExtractModes,
+		envGordonExtractExclude,
+		envGordonExtractInclude,
 		envGordonRoot,
-		envGordonArch,
+		envGordonArchitecture,
 		envGordonOS,
 	}
 
@@ -47,10 +58,15 @@ var (
 )
 
 const (
-	// DefaultHost is the default host of the GitHub
-	DefaultHost = "github.com"
 	// DefaultLogLevel is the default level to output log
 	DefaultLogLevel = "warn"
+	// DefaultGitHubHost is the default host of the GitHub
+	DefaultGitHubHost = "github.com"
+)
+
+var (
+	// DefaultHistoryFile is the default file to save history
+	DefaultHistoryFile = filepath.Join(xdg.CacheHome(), "gordon", "history")
 )
 
 var defaultConfig = Config{
@@ -60,11 +76,18 @@ var defaultConfig = Config{
 		Time:  TrueOption,
 	},
 	GitHub: GitHubConfig{
-		Host: DefaultHost,
+		Host: DefaultGitHubHost,
 	},
-	VRoot: xdg.DownloadDir(),
-	VArch: runtime.GOARCH,
-	VOS:   runtime.GOOS,
+	History: HistoryConfig{
+		File: DefaultHistoryFile,
+		Save: TrueOption,
+	},
+	Extract: ExtractConfig{
+		Modes: FileModes{0111},
+	},
+	VRoot:         xdg.DownloadDir(),
+	VArchitecture: runtime.GOARCH,
+	VOS:           runtime.GOOS,
 }
 
 func DefaultConfig() *Config {

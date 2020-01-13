@@ -6,14 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidateName(t *testing.T) {
-	assert.EqualError(t, ValidateName(""), "empty project name", "empty project name is invalid")
-	assert.EqualError(t, ValidateName("."), "'.' or '..' is reserved name", "'dot' conflicts with 'current directory'")
-	assert.EqualError(t, ValidateName(".."), "'.' or '..' is reserved name", "'dot' conflicts with 'parent directory'")
-	assert.EqualError(t, ValidateName("kyoh86/gordon"), "project name may only contain alphanumeric characters, dots or hyphens", "slashes must not be contained in project name")
-	assert.NoError(t, ValidateName("----..--.."), "hyphens and dots are usable in project name")
-}
-
 func TestValidateOwner(t *testing.T) {
 	expect := "owner name may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen"
 	assert.EqualError(t, ValidateOwner(""), expect, "fail when empty owner is given")
@@ -56,9 +48,11 @@ func TestValidateContext(t *testing.T) {
 	})
 	t.Run("valid context", func(t *testing.T) {
 		ctx := &MockContext{
-			MRoot:       "/path/to/not/existing",
-			MLogLevel:   "warn",
-			MGitHubUser: "kyoh86",
+			MRoot:         "/path/to/not/existing",
+			MLogLevel:     "warn",
+			MGitHubUser:   "kyoh86",
+			MOS:           "linux",
+			MArchitecture: "386",
 		}
 		assert.NoError(t, ValidateContext(ctx))
 	})

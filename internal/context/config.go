@@ -10,12 +10,13 @@ import (
 // Config holds configuration file values.
 type Config struct {
 	context.Context `yaml:"-"`
-	Log             LogConfig    `yaml:"log,omitempty"`
-	GitHub          GitHubConfig `yaml:"github,omitempty"`
-
-	VRoot string `yaml:"root,omitempty" env:"GORDON_ROOT"`
-	VArch string `yaml:"arch,omitempty" env:"GORDON_ARCH"`
-	VOS   string `yaml:"os,omitempty" env:"GORDON_OS"`
+	Log             LogConfig     `yaml:"log,omitempty"`
+	GitHub          GitHubConfig  `yaml:"github,omitempty"`
+	History         HistoryConfig `yaml:"history,omitempty"`
+	Extract         ExtractConfig `yaml:"extract,omitempty"`
+	VRoot           string        `yaml:"root,omitempty" env:"GORDON_ROOT"`
+	VArchitecture   string        `yaml:"architecture,omitempty" env:"GORDON_ARCHITECTURE"`
+	VOS             string        `yaml:"os,omitempty" env:"GORDON_OS"`
 }
 
 type LogConfig struct {
@@ -34,45 +35,22 @@ type GitHubConfig struct {
 	Host  string `yaml:"host,omitempty" env:"GORDON_GITHUB_HOST"`
 }
 
-func (c *Config) Stdin() io.Reader {
-	return os.Stdin
+type HistoryConfig struct {
+	File string     `yaml:"file,omitempty" env:"GORDON_HISTORY_FILE"`
+	Save BoolOption `yaml:"save" env:"GORDON_HISTORY_SAVE"`
 }
 
-func (c *Config) Stdout() io.Writer {
-	return os.Stdout
+type ExtractConfig struct {
+	Modes   FileModes `yaml:"modes,omitempty" env:"GORDON_EXTRACT_MODES"`
+	Exclude string     `yaml:"exclude,omitempty" env:"GORDON_EXTRACT_EXCLUDE"`
+	Include string     `yaml:"include,omitempty" env:"GORDON_EXTRACT_INCLUDE"`
 }
 
-func (c *Config) Stderr() io.Writer {
-	return os.Stderr
-}
+func (c *Config) Stdin() io.Reader  { return os.Stdin }
+func (c *Config) Stdout() io.Writer { return os.Stdout }
+func (c *Config) Stderr() io.Writer { return os.Stderr }
 
-func (c *Config) GitHubUser() string {
-	return c.GitHub.User
-}
-
-func (c *Config) GitHubToken() string {
-	return c.GitHub.Token
-}
-
-func (c *Config) GitHubHost() string {
-	return c.GitHub.Host
-}
-
-func (c *Config) Root() string {
-	return expandPath(c.VRoot)
-}
-
-func (c *Config) Arch() string {
-	return c.VArch
-}
-
-func (c *Config) OS() string {
-	return c.VOS
-}
-
-func (c *Config) LogLevel() string {
-	return c.Log.Level
-}
+func (c *Config) LogLevel() string { return c.Log.Level }
 
 func (c *Config) LogFlags() int {
 	var f int
@@ -103,3 +81,18 @@ func (c *Config) LogMicroSeconds() bool { return c.Log.MicroSeconds.Bool() }
 func (c *Config) LogLongFile() bool     { return c.Log.LongFile.Bool() }
 func (c *Config) LogShortFile() bool    { return c.Log.ShortFile.Bool() }
 func (c *Config) LogUTC() bool          { return c.Log.UTC.Bool() }
+
+func (c *Config) GitHubUser() string  { return c.GitHub.User }
+func (c *Config) GitHubToken() string { return c.GitHub.Token }
+func (c *Config) GitHubHost() string  { return c.GitHub.Host }
+
+func (c *Config) HistoryFile() string { return c.History.File }
+func (c *Config) HistorySave() bool   { return c.History.Save.Bool() }
+
+func (c *Config) ExtractModes() FileModes { return c.Extract.Modes }
+func (c *Config) ExtractExclude() string   { return c.Extract.Exclude }
+func (c *Config) ExtractInclude() string   { return c.Extract.Include }
+
+func (c *Config) Root() string         { return expandPath(c.VRoot) }
+func (c *Config) Architecture() string { return c.VArchitecture }
+func (c *Config) OS() string           { return c.VOS }

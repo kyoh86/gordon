@@ -8,15 +8,21 @@ import (
 // Context holds configurations and environments
 type Context interface {
 	context.Context
+	IOContext
+	LogContext
+	GitHubContext
+	HistoryContext
+	ExtractContext
+	Root() string
+	Architecture() string
+	OS() string
+}
+type IOContext interface {
 	Stdin() io.Reader
 	Stdout() io.Writer
 	Stderr() io.Writer
-	GitHubUser() string
-	GitHubToken() string
-	GitHubHost() string
-	Root() string
-	Arch() string
-	OS() string
+}
+type LogContext interface {
 	LogLevel() string
 	LogFlags() int // log.Lxxx flags
 	LogDate() bool
@@ -25,4 +31,18 @@ type Context interface {
 	LogLongFile() bool
 	LogShortFile() bool
 	LogUTC() bool
+}
+type GitHubContext interface {
+	GitHubUser() string
+	GitHubToken() string
+	GitHubHost() string
+}
+type HistoryContext interface {
+	HistoryFile() string
+	HistorySave() bool
+}
+type ExtractContext interface {
+	ExtractModes() FileModes
+	ExtractExclude() string
+	ExtractInclude() string
 }
