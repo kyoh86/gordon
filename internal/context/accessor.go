@@ -537,7 +537,7 @@ func boolOptionPrompt(opt *BoolOption, msg string) error {
 	return nil
 }
 
-func stringOptionPrompt(cfg *Config, msg string, validator func(string) error, target *string) error {
+func stringOptionPrompt(msg string, validator func(string) error, target *string) error {
 	var value string
 	asker := ask.Default(*target).Message(msg).Optional(true)
 	if validator != nil {
