@@ -76,7 +76,6 @@ func TestAccessor(t *testing.T) {
 		assert.NoError(t, mustOption(Option("log.longfile")).Put(&cfg, "yes"))
 		assert.NoError(t, mustOption(Option("log.shortfile")).Put(&cfg, "yes"))
 		assert.NoError(t, mustOption(Option("log.utc")).Put(&cfg, "yes"))
-		//TODO: put github.token test (change key name and service name for test)
 		assert.NoError(t, mustOption(Option("github.host")).Put(&cfg, dummyHost))
 		assert.NoError(t, mustOption(Option("github.user")).Put(&cfg, dummyUser))
 		assert.NoError(t, mustOption(Option("history.file")).Put(&cfg, "history-file"))
@@ -179,7 +178,6 @@ func TestAccessor(t *testing.T) {
 		cfg.Log.LongFile = TrueOption
 		cfg.Log.ShortFile = TrueOption
 		cfg.Log.UTC = TrueOption
-		// TODO: unset github.token test (change key name and service name for test)
 		cfg.GitHub.Host = dummyHost
 		cfg.GitHub.User = dummyUser
 		cfg.History.File = "history-file"

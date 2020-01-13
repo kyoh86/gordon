@@ -23,8 +23,6 @@ func LatestRelease(ctx context.Context, repo *gogh.Repo) (*github.RepositoryRele
 		return nil, err
 	}
 
-	// TODO: investigate that "Assets" is enough or not.
-	// if "Assets" is not enough, use "List Assets for a release" API
 	return release, nil
 }
 
