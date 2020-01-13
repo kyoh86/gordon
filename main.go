@@ -134,32 +134,33 @@ func initLog(ctx context.Context) error {
 }
 
 func currentConfig(configFile string, validate bool) (*context.Config, *context.Config, error) {
-	var fileCfg *context.Config
+	var savedConfig *context.Config
 	file, err := os.Open(configFile)
 	switch {
 	case err == nil:
 		defer file.Close()
-		fileCfg, err = context.LoadConfig(file)
+		savedConfig, err = context.LoadConfig(file)
 		if err != nil {
 			return nil, nil, err
 		}
 	case os.IsNotExist(err):
-		fileCfg = &context.Config{}
+		savedConfig = &context.Config{}
 	default:
 		return nil, nil, err
 	}
+	savedConfig = context.MergeConfig(savedConfig, context.LoadKeyring())
 	envarConfig, err := context.GetEnvarConfig()
 	if err != nil {
 		return nil, nil, err
 	}
-	cfg := context.MergeConfig(context.DefaultConfig(), fileCfg, context.LoadKeyring(), envarConfig)
+	cfg := context.MergeConfig(context.DefaultConfig(), savedConfig, envarConfig)
 	if !validate {
-		return fileCfg, cfg, nil
+		return savedConfig, cfg, nil
 	}
 	if err := context.ValidateContext(cfg); err != nil {
 		return nil, nil, err
 	}
-	return fileCfg, cfg, nil
+	return savedConfig, cfg, nil
 }
 
 func wrapCommand(cmd *kingpin.CmdClause, f func(context.Context) error) (string, func() error) {
@@ -182,7 +183,7 @@ func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(*context.Config) err
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() error {
-		fileCfg, cfg, err := currentConfig(configFile, false)
+		savedConfig, cfg, err := currentConfig(configFile, false)
 		if err != nil {
 			return err
 		}
@@ -191,7 +192,7 @@ func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(*context.Config) err
 			return err
 		}
 
-		if err = f(fileCfg); err != nil {
+		if err = f(savedConfig); err != nil {
 			return err
 		}
 
@@ -203,6 +204,6 @@ func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(*context.Config) err
 			return err
 		}
 		defer file.Close()
-		return context.SaveConfig(file, fileCfg)
+		return context.SaveConfig(file, savedConfig)
 	}
 }
