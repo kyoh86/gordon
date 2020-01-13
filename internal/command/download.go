@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/google/go-github/v24/github"
 	"github.com/kyoh86/gogh/gogh"
@@ -33,27 +35,29 @@ func Download(ctx context.Context, repo *gogh.Repo, tag string) error {
 		}
 		release = rel
 	}
-	if err := history.SaveHistory(ctx, repo, tag); err != nil {
-		log.Printf("warn: failed to save history %v", err)
-	}
-	//TODO: accept exclusion (asset name | tag) pattern
-	//TODO: accept inclusion (asset name) pattern (e.g. *.ttf)
 	for _, asset := range release.Assets {
 		if opener := assetOpener(ctx, asset); opener != nil {
-			return download(ctx, repo, asset, opener)
+			if err := download(ctx, repo, asset, opener); err != nil {
+				return err
+			}
+			if err := history.SaveHistory(ctx, repo, tag); err != nil {
+				log.Printf("warn: failed to save history: %v", err)
+			}
+			return nil
 		}
 	}
 	return fmt.Errorf("there's no installable asset in release %s", release.GetTagName())
 }
 
 func assetOpener(ctx context.Context, asset github.ReleaseAsset) archive.Opener {
-	if !strings.Contains(asset.GetName(), ctx.Architecture()) {
-		return nil
-	}
-	if !strings.Contains(asset.GetName(), ctx.OS()) {
-		return nil
-	}
 	name := asset.GetName()
+	if !strings.Contains(name, ctx.Architecture()) {
+		return nil
+	}
+	if !strings.Contains(name, ctx.OS()) {
+		return nil
+	}
+
 	switch {
 	case strings.HasSuffix(name, ".tar.gz"), strings.HasSuffix(name, ".tgz"):
 		return archive.OpenTarGzip
@@ -67,7 +71,17 @@ func assetOpener(ctx context.Context, asset github.ReleaseAsset) archive.Opener 
 	return nil
 }
 
+func reg(pattern string) (*regexp.Regexp, error) {
+	if pattern == "" {
+		return nil, nil
+	}
+	return regexp.Compile(pattern)
+}
+
+var mkdirAllOnce sync.Once
+
 func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener) error {
+	log.Printf("info: download %s", asset.GetName())
 	reader, err := gh.Asset(ctx, repo, asset.GetID())
 	if err != nil {
 		return err
@@ -78,23 +92,59 @@ func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, o
 	if err != nil {
 		return err
 	}
-	return arch.Walk(func(info os.FileInfo, entry archive.Entry) error {
-		if (info.Mode() & 0111) == 0 {
+
+	excReg, err := reg(ctx.ExtractExclude())
+	if err != nil {
+		return err
+	}
+	incReg, err := reg(ctx.ExtractInclude())
+	if err != nil {
+		return err
+	}
+	return arch.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
+		log.Printf("debug: extract %s", info.Name())
+		if !ctx.ExtractModes().Match(info.Mode()) {
+			log.Printf("debug: skip %s because mode %s is not matched", info.Name(), info.Mode())
 			return nil
 		}
-		reader, err := entry()
+
+		if excReg != nil && excReg.MatchString(info.Name()) {
+			log.Printf("debug: exclude %s", info.Name())
+			return nil
+		}
+		if incReg != nil && !incReg.MatchString(info.Name()) {
+			log.Printf("debug: not included %s", info.Name())
+			return nil
+		}
+		log.Printf("info: unarchive %s", info.Name())
+
+		entryReader, err := entry()
 		if err != nil {
 			return err
 		}
-		defer reader.Close()
+		defer func() {
+			if err := entryReader.Close(); err != nil && retErr == nil {
+				retErr = err
+			}
+		}()
+		mkdirAllOnce.Do(func() {
+			retErr = os.MkdirAll(ctx.Root(), 0777)
+		})
+		if retErr != nil {
+			return
+		}
 		bin := filepath.Join(ctx.Root(), info.Name())
 		file, err := os.OpenFile(bin, os.O_CREATE|os.O_EXCL|os.O_WRONLY, info.Mode())
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil && retErr == nil {
+				retErr = err
+			}
+		}()
 
-		if _, err := io.Copy(file, reader); err != nil {
+		if _, err := io.Copy(file, entryReader); err != nil {
 			return err
 		}
 		return nil

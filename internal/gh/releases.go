@@ -2,6 +2,7 @@ package gh
 
 import (
 	"io"
+	"net/http"
 
 	"github.com/google/go-github/v24/github"
 	"github.com/kyoh86/gogh/gogh"
@@ -53,6 +54,13 @@ func Asset(ctx context.Context, repo *gogh.Repo, assetID int64) (io.ReadCloser, 
 	if err != nil {
 		return nil, err
 	}
-	reader, _, err := client.Repositories.DownloadReleaseAsset(ctx, repo.Owner(ctx), repo.Name(ctx), assetID)
-	return reader, err
+	reader, redirect, err := client.Repositories.DownloadReleaseAsset(ctx, repo.Owner(ctx), repo.Name(ctx), assetID)
+	if reader != nil {
+		return reader, err
+	}
+	res, err := http.Get(redirect)
+	if err != nil {
+		return nil, err
+	}
+	return res.Body, nil
 }

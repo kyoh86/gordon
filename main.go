@@ -34,6 +34,7 @@ func main() {
 		configGet,
 		configPut,
 		configUnset,
+		configSetup,
 
 		get,
 	} {
@@ -89,12 +90,20 @@ func configUnset(app *kingpin.Application) (string, func() error) {
 	})
 }
 
+func configSetup(app *kingpin.Application) (string, func() error) {
+	cmd := app.GetCommand("config").Command("setup", "setup all options").Alias("prompt")
+
+	return wrapConfigurableCommand(cmd, func(cfg *context.Config) error {
+		return command.ConfigPrompt(cfg)
+	})
+}
+
 func get(app *kingpin.Application) (string, func() error) {
 	var (
 		repo gogh.Repo
 		tag  string
 	)
-	cmd := app.Command("get", "Clone/sync with a remote repository")
+	cmd := app.Command("get", "Clone/sync with a remote repository").Alias("download")
 	cmd.Arg("repository", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&repo)
 	cmd.Flag("tag", "Target tag").StringVar(&tag)
 
