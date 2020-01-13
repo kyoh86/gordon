@@ -3,11 +3,13 @@ package context
 import (
 	"context"
 	"io"
+	"log"
 	"runtime"
 
 	"github.com/joeshaw/envdecode"
 	"github.com/kyoh86/xdg"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/zalando/go-keyring"
+	yaml "gopkg.in/yaml.v3"
 )
 
 var (
@@ -39,6 +41,9 @@ var (
 		envGordonArch,
 		envGordonOS,
 	}
+
+	keyGordonServiceName = "gordon.kyoh86.dev"
+	keyGordonGitHubToken = "github-token"
 )
 
 const (
@@ -72,6 +77,16 @@ func LoadConfig(r io.Reader) (config *Config, err error) {
 		return nil, err
 	}
 	return
+}
+
+func LoadKeyring() *Config {
+	token, err := keyring.Get(keyGordonServiceName, keyGordonGitHubToken)
+	if err != nil {
+		log.Printf("info: there's no token in %s::%s (%v)", keyGordonServiceName, keyGordonGitHubToken, err)
+		return &Config{}
+	}
+
+	return &Config{GitHub: GitHubConfig{Token: token}}
 }
 
 func SaveConfig(w io.Writer, config *Config) error {

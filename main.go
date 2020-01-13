@@ -124,7 +124,7 @@ func initLog(ctx context.Context) error {
 	return nil
 }
 
-func currentConfig(configFile string) (*context.Config, *context.Config, error) {
+func currentConfig(configFile string, validate bool) (*context.Config, *context.Config, error) {
 	var fileCfg *context.Config
 	file, err := os.Open(configFile)
 	switch {
@@ -143,7 +143,10 @@ func currentConfig(configFile string) (*context.Config, *context.Config, error) 
 	if err != nil {
 		return nil, nil, err
 	}
-	cfg := context.MergeConfig(context.DefaultConfig(), fileCfg, envarConfig)
+	cfg := context.MergeConfig(context.DefaultConfig(), fileCfg, context.LoadKeyring(), envarConfig)
+	if !validate {
+		return fileCfg, cfg, nil
+	}
 	if err := context.ValidateContext(cfg); err != nil {
 		return nil, nil, err
 	}
@@ -154,7 +157,7 @@ func wrapCommand(cmd *kingpin.CmdClause, f func(context.Context) error) (string,
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() error {
-		_, cfg, err := currentConfig(configFile)
+		_, cfg, err := currentConfig(configFile, true)
 		if err != nil {
 			return err
 		}
@@ -170,7 +173,7 @@ func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(*context.Config) err
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() error {
-		fileCfg, cfg, err := currentConfig(configFile)
+		fileCfg, cfg, err := currentConfig(configFile, false)
 		if err != nil {
 			return err
 		}

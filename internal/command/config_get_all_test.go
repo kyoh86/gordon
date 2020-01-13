@@ -33,7 +33,7 @@ func ExampleConfigGetAll() {
 	// os = os
 	// github.host = hostx1
 	// github.user = kyoh86
-	// github.token = tokenx1
+	// github.token = *****
 	// log.level = trace
 	// log.date = yes
 	// log.time = no
