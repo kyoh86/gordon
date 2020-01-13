@@ -120,20 +120,42 @@ func setConfigFlag(cmd *kingpin.CmdClause, configFile *string) {
 		StringVar(configFile)
 }
 
+var plainLabels = colog.LevelMap{
+	colog.LTrace:   []byte("[ trace ] "),
+	colog.LDebug:   []byte("\u2699 "),
+	colog.LInfo:    []byte("\u24d8 "),
+	colog.LWarning: []byte("\u26a0 "),
+	colog.LError:   []byte("\u2622 "),
+	colog.LAlert:   []byte("\u2620 "),
+}
+
+var colorLabels = colog.LevelMap{
+	colog.LTrace:   []byte("[ trace ] "),
+	colog.LDebug:   []byte("\x1b[0;36m\u2699 \x1b[0m"),
+	colog.LInfo:    []byte("\x1b[0;32m\u24d8 \x1b[0m"),
+	colog.LWarning: []byte("\x1b[0;33m\u26a0 \x1b[0m"),
+	colog.LError:   []byte("\x1b[0;31m\u2622 \x1b[0m"),
+	colog.LAlert:   []byte("\x1b[0;37;41m\u2620 \x1b[0m"),
+}
+
 func initLog(ctx context.Context) error {
 	lvl, err := colog.ParseLevel(ctx.LogLevel())
 	if err != nil {
 		return err
 	}
-	colog.Register()
-	colog.SetOutput(ctx.Stderr())
-	colog.SetFlags(ctx.LogFlags())
 	colog.SetMinLevel(lvl)
 	colog.SetDefaultLevel(colog.LError)
+	colog.SetFormatter(&colog.StdFormatter{
+		Flag:        ctx.LogFlags(),
+		HeaderPlain: plainLabels,
+		HeaderColor: colorLabels,
+	})
+	colog.SetOutput(ctx.Stderr())
+	colog.Register()
 	return nil
 }
 
-func currentConfig(configFile string, validate bool) (*context.Config, *context.Config, error) {
+func currentConfig(configFile string) (*context.Config, *context.Config, error) {
 	var savedConfig *context.Config
 	file, err := os.Open(configFile)
 	switch {
@@ -148,17 +170,19 @@ func currentConfig(configFile string, validate bool) (*context.Config, *context.
 	default:
 		return nil, nil, err
 	}
+
 	savedConfig = context.MergeConfig(savedConfig, context.LoadKeyring())
 	envarConfig, err := context.GetEnvarConfig()
 	if err != nil {
 		return nil, nil, err
 	}
 	cfg := context.MergeConfig(context.DefaultConfig(), savedConfig, envarConfig)
-	if !validate {
-		return savedConfig, cfg, nil
-	}
-	if err := context.ValidateContext(cfg); err != nil {
+	if err := initLog(cfg); err != nil {
 		return nil, nil, err
+	}
+
+	if err := context.ValidateContext(cfg); err != nil {
+		log.Printf("warn: invalid config: %v", err)
 	}
 	return savedConfig, cfg, nil
 }
@@ -167,14 +191,11 @@ func wrapCommand(cmd *kingpin.CmdClause, f func(context.Context) error) (string,
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() error {
-		_, cfg, err := currentConfig(configFile, true)
+		_, cfg, err := currentConfig(configFile)
 		if err != nil {
 			return err
 		}
 
-		if err := initLog(cfg); err != nil {
-			return err
-		}
 		return f(cfg)
 	}
 }
@@ -183,12 +204,8 @@ func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(*context.Config) err
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() error {
-		savedConfig, cfg, err := currentConfig(configFile, false)
+		savedConfig, _, err := currentConfig(configFile)
 		if err != nil {
-			return err
-		}
-
-		if err := initLog(cfg); err != nil {
 			return err
 		}
 
