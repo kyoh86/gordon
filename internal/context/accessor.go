@@ -261,7 +261,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "GitHub user name like 'kyoh86'", ValidateOwner, &cfg.GitHub.User)
+			return stringOptionPrompt("GitHub user name like 'kyoh86'", ValidateOwner, &cfg.GitHub.User)
 		},
 	}
 
@@ -315,7 +315,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "GitHub host name like 'github.com'", nil, &cfg.GitHub.Host)
+			return stringOptionPrompt("GitHub host name like 'github.com'", nil, &cfg.GitHub.Host)
 		},
 	}
 
@@ -339,7 +339,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "A file to save downloading history", ValidateFile, &cfg.History.File)
+			return stringOptionPrompt("A file to save downloading history", ValidateFile, &cfg.History.File)
 		},
 	}
 
@@ -421,7 +421,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "File exclusion filter for files to extract from downloaded archive", ValidateRegexp, &cfg.Extract.Exclude)
+			return stringOptionPrompt("File exclusion filter for files to extract from downloaded archive", ValidateRegexp, &cfg.Extract.Exclude)
 		},
 	}
 
@@ -445,7 +445,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "File inclusion filter for files to extract from downloaded archive", ValidateRegexp, &cfg.Extract.Exclude)
+			return stringOptionPrompt("File inclusion filter for files to extract from downloaded archive", ValidateRegexp, &cfg.Extract.Exclude)
 		},
 	}
 
@@ -469,7 +469,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "Root directory to store downloaded files", ValidateRoot, &cfg.VRoot)
+			return stringOptionPrompt("Root directory to store downloaded files", ValidateRoot, &cfg.VRoot)
 		},
 	}
 
@@ -493,7 +493,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "Target architecture", ValidateArchitecture, &cfg.VArchitecture)
+			return stringOptionPrompt("Target architecture", ValidateArchitecture, &cfg.VArchitecture)
 		},
 	}
 
@@ -517,7 +517,7 @@ var (
 			return nil
 		},
 		prompt: func(cfg *Config) error {
-			return stringOptionPrompt(cfg, "Target OS", ValidateOS, &cfg.VOS)
+			return stringOptionPrompt("Target OS", ValidateOS, &cfg.VOS)
 		},
 	}
 )
