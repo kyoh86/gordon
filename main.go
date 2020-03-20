@@ -100,15 +100,17 @@ func configSetup(app *kingpin.Application) (string, func() error) {
 
 func get(app *kingpin.Application) (string, func() error) {
 	var (
-		repo gogh.Repo
-		tag  string
+		repo   gogh.Repo
+		update bool
+		tag    string
 	)
 	cmd := app.Command("get", "Clone/sync with a remote repository").Alias("download")
 	cmd.Arg("repository", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&repo)
+	cmd.Flag("update", "Update files").Short('u').BoolVar(&update)
 	cmd.Flag("tag", "Target tag").StringVar(&tag)
 
 	return wrapCommand(cmd, func(ctx context.Context) error {
-		return command.Download(ctx, &repo, tag)
+		return command.Download(ctx, &repo, tag, update)
 	})
 
 }
@@ -122,11 +124,11 @@ func setConfigFlag(cmd *kingpin.CmdClause, configFile *string) {
 
 var plainLabels = colog.LevelMap{
 	colog.LTrace:   []byte("[ trace ] "),
-	colog.LDebug:   []byte("\u2699 "),
-	colog.LInfo:    []byte("\u24d8 "),
-	colog.LWarning: []byte("\u26a0 "),
-	colog.LError:   []byte("\u2622 "),
-	colog.LAlert:   []byte("\u2620 "),
+	colog.LDebug:   []byte("⚙ "),
+	colog.LInfo:    []byte("ⓘ "),
+	colog.LWarning: []byte("⚠ "),
+	colog.LError:   []byte("☢ "),
+	colog.LAlert:   []byte("☠ "),
 }
 
 var colorLabels = colog.LevelMap{

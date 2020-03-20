@@ -20,7 +20,7 @@ import (
 
 // Download a package from GitHub Release.
 // If `tag` is empty, it will download from the latest release.
-func Download(ctx context.Context, repo *gogh.Repo, tag string) error {
+func Download(ctx context.Context, repo *gogh.Repo, tag string, update bool) error {
 	var release *github.RepositoryRelease
 	if tag == "" {
 		rel, err := gh.LatestRelease(ctx, repo)
@@ -37,7 +37,7 @@ func Download(ctx context.Context, repo *gogh.Repo, tag string) error {
 	}
 	for _, asset := range release.Assets {
 		if opener := assetOpener(ctx, asset); opener != nil {
-			if err := download(ctx, repo, asset, opener); err != nil {
+			if err := download(ctx, repo, asset, opener, update); err != nil {
 				return err
 			}
 			if err := history.SaveHistory(ctx, repo, tag); err != nil {
@@ -80,7 +80,7 @@ func reg(pattern string) (*regexp.Regexp, error) {
 
 var mkdirAllOnce sync.Once
 
-func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener) error {
+func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener, update bool) error {
 	log.Printf("info: download %s", asset.GetName())
 	reader, err := gh.Asset(ctx, repo, asset.GetID())
 	if err != nil {
@@ -134,7 +134,11 @@ func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, o
 			return
 		}
 		bin := filepath.Join(ctx.Root(), info.Name())
-		file, err := os.OpenFile(bin, os.O_CREATE|os.O_EXCL|os.O_WRONLY, info.Mode())
+		flag := os.O_CREATE | os.O_EXCL | os.O_WRONLY
+		if update {
+			flag = os.O_TRUNC | os.O_WRONLY
+		}
+		file, err := os.OpenFile(bin, flag, info.Mode())
 		if err != nil {
 			return err
 		}
