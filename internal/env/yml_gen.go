@@ -8,10 +8,17 @@ import (
 )
 
 type YAML struct {
-	GithubHost *GithubHost `yaml:"githubHost,omitempty"`
-	GithubUser *GithubUser `yaml:"githubUser,omitempty"`
-	Root       *Root       `yaml:"root,omitempty"`
-	Hooks      *Hooks      `yaml:"hooks,omitempty"`
+	GithubHost     *GithubHost     `yaml:"githubHost,omitempty"`
+	GithubUser     *GithubUser     `yaml:"githubUser,omitempty"`
+	HistoryFile    *HistoryFile    `yaml:"historyFile,omitempty"`
+	HistorySave    *HistorySave    `yaml:"historySave,omitempty"`
+	ExtractModes   *ExtractModes   `yaml:"extractModes,omitempty"`
+	ExtractExclude *ExtractExclude `yaml:"extractExclude,omitempty"`
+	ExtractInclude *ExtractInclude `yaml:"extractInclude,omitempty"`
+	Architecture   *Architecture   `yaml:"architecture,omitempty"`
+	OS             *OS             `yaml:"os,omitempty"`
+	Root           *Root           `yaml:"root,omitempty"`
+	Hooks          *Hooks          `yaml:"hooks,omitempty"`
 }
 
 func saveYAML(w io.Writer, yml *YAML) error {

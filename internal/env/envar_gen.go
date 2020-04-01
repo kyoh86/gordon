@@ -8,10 +8,17 @@ import (
 )
 
 type Envar struct {
-	GithubHost *GithubHost
-	GithubUser *GithubUser
-	Root       *Root
-	Hooks      *Hooks
+	GithubHost     *GithubHost
+	GithubUser     *GithubUser
+	HistoryFile    *HistoryFile
+	HistorySave    *HistorySave
+	ExtractModes   *ExtractModes
+	ExtractExclude *ExtractExclude
+	ExtractInclude *ExtractInclude
+	Architecture   *Architecture
+	OS             *OS
+	Root           *Root
+	Hooks          *Hooks
 }
 
 func getEnvar(prefix string) (envar Envar, err error) {
@@ -34,6 +41,76 @@ func getEnvar(prefix string) (envar Envar, err error) {
 				return envar, err
 			}
 			envar.GithubUser = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "HISTORY_FILE")
+		if v != "" {
+			var value HistoryFile
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.HistoryFile = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "HISTORY_SAVE")
+		if v != "" {
+			var value HistorySave
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.HistorySave = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "EXTRACT_MODES")
+		if v != "" {
+			var value ExtractModes
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.ExtractModes = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "EXTRACT_EXCLUDE")
+		if v != "" {
+			var value ExtractExclude
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.ExtractExclude = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "EXTRACT_INCLUDE")
+		if v != "" {
+			var value ExtractInclude
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.ExtractInclude = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "ARCHITECTURE")
+		if v != "" {
+			var value Architecture
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.Architecture = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "OS")
+		if v != "" {
+			var value OS
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.OS = &value
 		}
 	}
 	{
