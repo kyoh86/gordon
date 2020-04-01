@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -10,38 +11,38 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/go-github/v24/github"
+	"github.com/google/go-github/v29/github"
 	"github.com/kyoh86/gogh/gogh"
 	"github.com/kyoh86/gordon/internal/archive"
-	"github.com/kyoh86/gordon/internal/context"
-	"github.com/kyoh86/gordon/internal/gh"
-	"github.com/kyoh86/gordon/internal/history"
+	"github.com/kyoh86/gordon/internal/env"
+	"github.com/kyoh86/gordon/internal/hub"
 )
 
 // Download a package from GitHub Release.
 // If `tag` is empty, it will download from the latest release.
-func Download(ctx context.Context, repo *gogh.Repo, tag string, update bool) error {
+func Download(ctx context.Context, ev env.Env, repo *gogh.Repo, tag string, update bool) error {
 	var release *github.RepositoryRelease
+	client, err := hub.New(ctx, ev)
+	if err != nil {
+		return err
+	}
 	if tag == "" {
-		rel, err := gh.LatestRelease(ctx, repo)
+		rel, err := client.LatestRelease(ctx, repo)
 		if err != nil {
 			return err
 		}
 		release = rel
 	} else {
-		rel, err := gh.Release(ctx, repo, tag)
+		rel, err := client.Release(ctx, repo, tag)
 		if err != nil {
 			return err
 		}
 		release = rel
 	}
 	for _, asset := range release.Assets {
-		if opener := assetOpener(ctx, asset); opener != nil {
-			if err := download(ctx, repo, asset, opener, update); err != nil {
+		if opener := assetOpener(ev, asset); opener != nil {
+			if err := download(ctx, ev, client, repo, asset, opener, update); err != nil {
 				return err
-			}
-			if err := history.SaveHistory(ctx, repo, tag); err != nil {
-				log.Printf("warn: failed to save history: %v", err)
 			}
 			return nil
 		}
@@ -49,12 +50,12 @@ func Download(ctx context.Context, repo *gogh.Repo, tag string, update bool) err
 	return fmt.Errorf("there's no installable asset in release %s", release.GetTagName())
 }
 
-func assetOpener(ctx context.Context, asset github.ReleaseAsset) archive.Opener {
+func assetOpener(ev env.Env, asset github.ReleaseAsset) archive.Opener {
 	name := asset.GetName()
-	if !strings.Contains(name, ctx.Architecture()) {
+	if !strings.Contains(name, ev.Architecture()) {
 		return nil
 	}
-	if !strings.Contains(name, ctx.OS()) {
+	if !strings.Contains(name, ev.OS()) {
 		return nil
 	}
 
@@ -80,9 +81,9 @@ func reg(pattern string) (*regexp.Regexp, error) {
 
 var mkdirAllOnce sync.Once
 
-func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener, update bool) error {
+func download(ctx context.Context, ev env.Env, client *hub.Client, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener, update bool) error {
 	log.Printf("info: download %s", asset.GetName())
-	reader, err := gh.Asset(ctx, repo, asset.GetID())
+	reader, err := client.Asset(ctx, repo, asset.GetID())
 	if err != nil {
 		return err
 	}
@@ -93,17 +94,17 @@ func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, o
 		return err
 	}
 
-	excReg, err := reg(ctx.ExtractExclude())
+	excReg, err := reg(ev.ExtractExclude())
 	if err != nil {
 		return err
 	}
-	incReg, err := reg(ctx.ExtractInclude())
+	incReg, err := reg(ev.ExtractInclude())
 	if err != nil {
 		return err
 	}
 	return arch.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
 		log.Printf("debug: extract %s", info.Name())
-		if !ctx.ExtractModes().Match(info.Mode()) {
+		if !ev.ExtractModes().Match(info.Mode()) {
 			log.Printf("debug: skip %s because mode %s is not matched", info.Name(), info.Mode())
 			return nil
 		}
@@ -128,12 +129,12 @@ func download(ctx context.Context, repo *gogh.Repo, asset github.ReleaseAsset, o
 			}
 		}()
 		mkdirAllOnce.Do(func() {
-			retErr = os.MkdirAll(ctx.Root(), 0777)
+			retErr = os.MkdirAll(ev.Root(), 0777)
 		})
 		if retErr != nil {
 			return
 		}
-		bin := filepath.Join(ctx.Root(), info.Name())
+		bin := filepath.Join(ev.Root(), info.Name())
 		flag := os.O_CREATE | os.O_EXCL | os.O_WRONLY
 		if update {
 			flag = os.O_TRUNC | os.O_WRONLY
