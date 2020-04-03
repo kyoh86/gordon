@@ -8,13 +8,8 @@ import (
 // Env is an interface generated for "github.com/kyoh86/gordon/internal/env.Access".
 type Env interface {
 	Architecture() string
-	ExtractExclude() string
-	ExtractInclude() string
-	ExtractModes() []invalid type
 	GithubHost() string
 	GithubUser() string
-	HistoryFile() string
-	HistorySave() bool
 	Hooks() []string
 	OS() string
 	Root() string

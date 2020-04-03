@@ -20,7 +20,11 @@ import (
 
 // Download a package from GitHub Release.
 // If `tag` is empty, it will download from the latest release.
-func Download(ctx context.Context, ev env.Env, repo *gogh.Repo, tag string, update bool) error {
+func Download(ctx context.Context, ev env.Env, spec gogh.RepoSpec, tag string, update bool) error {
+	repo, err := spec.Validate(ev)
+	if err != nil {
+		return err
+	}
 	var release *github.RepositoryRelease
 	client, err := hub.New(ctx, ev)
 	if err != nil {
@@ -94,29 +98,7 @@ func download(ctx context.Context, ev env.Env, client *hub.Client, repo *gogh.Re
 		return err
 	}
 
-	excReg, err := reg(ev.ExtractExclude())
-	if err != nil {
-		return err
-	}
-	incReg, err := reg(ev.ExtractInclude())
-	if err != nil {
-		return err
-	}
 	return arch.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
-		log.Printf("debug: extract %s", info.Name())
-		if !ev.ExtractModes().Match(info.Mode()) {
-			log.Printf("debug: skip %s because mode %s is not matched", info.Name(), info.Mode())
-			return nil
-		}
-
-		if excReg != nil && excReg.MatchString(info.Name()) {
-			log.Printf("debug: exclude %s", info.Name())
-			return nil
-		}
-		if incReg != nil && !incReg.MatchString(info.Name()) {
-			log.Printf("debug: not included %s", info.Name())
-			return nil
-		}
 		log.Printf("info: unarchive %s", info.Name())
 
 		entryReader, err := entry()

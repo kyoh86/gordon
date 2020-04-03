@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -35,7 +36,6 @@ func main() {
 		configGet,
 		configPut,
 		configUnset,
-		configSetup,
 
 		get,
 	} {
@@ -60,7 +60,7 @@ func configGet(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("get", "get an option")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 
-	return wrapConfigurableCommand(cmd, func(cfg *env.Config) error {
+	return wrapConfigurableCommand(cmd, func(_ env.Env, cfg *env.Config) error {
 		return command.ConfigGet(cfg, name)
 	})
 }
@@ -74,8 +74,8 @@ func configPut(app *kingpin.Application) (string, func() error) {
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 	cmd.Arg("value", "option value").Required().StringVar(&value)
 
-	return wrapConfigurableCommand(cmd, func(cfg *env.Config) error {
-		return command.ConfigPut(cfg, name, value)
+	return wrapConfigurableCommand(cmd, func(ev env.Env, cfg *env.Config) error {
+		return command.ConfigSet(ev, cfg, name, value)
 	})
 }
 
@@ -86,32 +86,24 @@ func configUnset(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("unset", "unset an option").Alias("rm")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 
-	return wrapConfigurableCommand(cmd, func(cfg *env.Config) error {
-		return command.ConfigUnset(cfg, name)
-	})
-}
-
-func configSetup(app *kingpin.Application) (string, func() error) {
-	cmd := app.GetCommand("config").Command("setup", "setup all options").Alias("prompt")
-
-	return wrapConfigurableCommand(cmd, func(cfg *env.Config) error {
-		return command.ConfigPrompt(cfg)
+	return wrapConfigurableCommand(cmd, func(ev env.Env, cfg *env.Config) error {
+		return command.ConfigUnset(ev, cfg, name)
 	})
 }
 
 func get(app *kingpin.Application) (string, func() error) {
 	var (
-		repo   gogh.Repo
+		spec   gogh.RepoSpec
 		update bool
 		tag    string
 	)
 	cmd := app.Command("get", "Clone/sync with a remote repository").Alias("download")
-	cmd.Arg("repository", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&repo)
+	cmd.Arg("repository", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&spec)
 	cmd.Flag("update", "Update files").Short('u').BoolVar(&update)
 	cmd.Flag("tag", "Target tag").StringVar(&tag)
 
 	return wrapCommand(cmd, func(ev env.Env) error {
-		return command.Download(ev, &repo, tag, update)
+		return command.Download(context.Background(), ev, spec, tag, update)
 	})
 
 }

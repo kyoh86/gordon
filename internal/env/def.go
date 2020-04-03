@@ -1,7 +1,6 @@
 package env
 
 import (
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -32,31 +31,6 @@ type GithubUser struct {
 	types.StringPropertyBase
 }
 
-var (
-	// DefaultHistoryFile is the default file to save history
-	DefaultHistoryFile = filepath.Join(xdg.CacheHome(), "gordon", "history")
-)
-
-type HistoryFile struct{ types.StringPropertyBase }
-
-func (*HistoryFile) Default() interface{} {
-	return DefaultHistoryFile
-}
-
-type HistorySave struct{ types.BoolPropertyBase }
-
-func (*HistorySave) Default() interface{} {
-	return true
-}
-
-type ExtractModes struct{ FileModes }
-
-func (*ExtractModes) Default() interface{} {
-	return []os.FileMode{111}
-}
-
-type ExtractExclude struct{ types.StringPropertyBase }
-type ExtractInclude struct{ types.StringPropertyBase }
 type Architecture struct{ types.StringPropertyBase }
 
 func (*Architecture) Default() interface{} {

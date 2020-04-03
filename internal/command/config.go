@@ -8,7 +8,7 @@ import (
 	keyring "github.com/zalando/go-keyring"
 )
 
-func ConfigGetAll(cfg *env.Config) error {
+func ConfigGetAll(_ env.Env, cfg *env.Config) error {
 	for _, name := range env.PropertyNames() {
 		opt, _ := cfg.Property(name) // ignore error: config.OptionNames covers all accessor
 		value, err := opt.Get()

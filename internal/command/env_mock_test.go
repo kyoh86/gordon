@@ -32,6 +32,20 @@ func (m *MockEnv) EXPECT() *MockEnvMockRecorder {
 	return m.recorder
 }
 
+// Architecture mocks base method
+func (m *MockEnv) Architecture() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Architecture")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Architecture indicates an expected call of Architecture
+func (mr *MockEnvMockRecorder) Architecture() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Architecture", reflect.TypeOf((*MockEnv)(nil).Architecture))
+}
+
 // GithubHost mocks base method
 func (m *MockEnv) GithubHost() string {
 	m.ctrl.T.Helper()
@@ -72,6 +86,20 @@ func (m *MockEnv) Hooks() []string {
 func (mr *MockEnvMockRecorder) Hooks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Hooks", reflect.TypeOf((*MockEnv)(nil).Hooks))
+}
+
+// OS mocks base method
+func (m *MockEnv) OS() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OS")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// OS indicates an expected call of OS
+func (mr *MockEnvMockRecorder) OS() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OS", reflect.TypeOf((*MockEnv)(nil).OS))
 }
 
 // Root mocks base method

@@ -1,5 +1,3 @@
-// +build generate
-
 package main
 
 import (
@@ -19,11 +17,6 @@ func main() {
 		"../",
 		gen.Prop(new(env.GithubHost), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.GithubUser), gen.YAML(), gen.Envar()),
-		gen.Prop(new(env.HistoryFile), gen.YAML(), gen.Envar()),
-		gen.Prop(new(env.HistorySave), gen.YAML(), gen.Envar()),
-		gen.Prop(new(env.ExtractModes), gen.YAML(), gen.Envar()),
-		gen.Prop(new(env.ExtractExclude), gen.YAML(), gen.Envar()),
-		gen.Prop(new(env.ExtractInclude), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.Architecture), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.OS), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.Root), gen.YAML(), gen.Envar()),

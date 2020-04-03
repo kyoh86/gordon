@@ -33,7 +33,7 @@ func (c *Config) Save(yamlWriter io.Writer) error {
 }
 
 func PropertyNames() []string {
-	return []string{"github.host", "github.user", "history.file", "history.save", "extract.modes", "extract.exclude", "extract.include", "architecture", "os", "root", "hooks"}
+	return []string{"github.host", "github.user", "architecture", "os", "root", "hooks"}
 }
 
 func (a *Config) Property(name string) (types.Config, error) {
@@ -42,16 +42,6 @@ func (a *Config) Property(name string) (types.Config, error) {
 		return &githubHostConfig{parent: a}, nil
 	case "github.user":
 		return &githubUserConfig{parent: a}, nil
-	case "history.file":
-		return &historyFileConfig{parent: a}, nil
-	case "history.save":
-		return &historySaveConfig{parent: a}, nil
-	case "extract.modes":
-		return &extractModesConfig{parent: a}, nil
-	case "extract.exclude":
-		return &extractExcludeConfig{parent: a}, nil
-	case "extract.include":
-		return &extractIncludeConfig{parent: a}, nil
 	case "architecture":
 		return &architectureConfig{parent: a}, nil
 	case "os":
@@ -128,171 +118,6 @@ func (a *githubUserConfig) Set(value string) error {
 
 func (a *githubUserConfig) Unset() {
 	a.parent.yml.GithubUser = nil
-}
-
-type historyFileConfig struct {
-	parent *Config
-}
-
-func (a *historyFileConfig) Get() (string, error) {
-	{
-		p := a.parent.yml.HistoryFile
-		if p != nil {
-			text, err := p.MarshalText()
-			return string(text), err
-		}
-	}
-	return "", nil
-}
-
-func (a *historyFileConfig) Set(value string) error {
-	{
-		p := a.parent.yml.HistoryFile
-		if p == nil {
-			p = new(HistoryFile)
-		}
-		if err := p.UnmarshalText([]byte(value)); err != nil {
-			return err
-		}
-		a.parent.yml.HistoryFile = p
-	}
-	return nil
-}
-
-func (a *historyFileConfig) Unset() {
-	a.parent.yml.HistoryFile = nil
-}
-
-type historySaveConfig struct {
-	parent *Config
-}
-
-func (a *historySaveConfig) Get() (string, error) {
-	{
-		p := a.parent.yml.HistorySave
-		if p != nil {
-			text, err := p.MarshalText()
-			return string(text), err
-		}
-	}
-	return "", nil
-}
-
-func (a *historySaveConfig) Set(value string) error {
-	{
-		p := a.parent.yml.HistorySave
-		if p == nil {
-			p = new(HistorySave)
-		}
-		if err := p.UnmarshalText([]byte(value)); err != nil {
-			return err
-		}
-		a.parent.yml.HistorySave = p
-	}
-	return nil
-}
-
-func (a *historySaveConfig) Unset() {
-	a.parent.yml.HistorySave = nil
-}
-
-type extractModesConfig struct {
-	parent *Config
-}
-
-func (a *extractModesConfig) Get() (string, error) {
-	{
-		p := a.parent.yml.ExtractModes
-		if p != nil {
-			text, err := p.MarshalText()
-			return string(text), err
-		}
-	}
-	return "", nil
-}
-
-func (a *extractModesConfig) Set(value string) error {
-	{
-		p := a.parent.yml.ExtractModes
-		if p == nil {
-			p = new(ExtractModes)
-		}
-		if err := p.UnmarshalText([]byte(value)); err != nil {
-			return err
-		}
-		a.parent.yml.ExtractModes = p
-	}
-	return nil
-}
-
-func (a *extractModesConfig) Unset() {
-	a.parent.yml.ExtractModes = nil
-}
-
-type extractExcludeConfig struct {
-	parent *Config
-}
-
-func (a *extractExcludeConfig) Get() (string, error) {
-	{
-		p := a.parent.yml.ExtractExclude
-		if p != nil {
-			text, err := p.MarshalText()
-			return string(text), err
-		}
-	}
-	return "", nil
-}
-
-func (a *extractExcludeConfig) Set(value string) error {
-	{
-		p := a.parent.yml.ExtractExclude
-		if p == nil {
-			p = new(ExtractExclude)
-		}
-		if err := p.UnmarshalText([]byte(value)); err != nil {
-			return err
-		}
-		a.parent.yml.ExtractExclude = p
-	}
-	return nil
-}
-
-func (a *extractExcludeConfig) Unset() {
-	a.parent.yml.ExtractExclude = nil
-}
-
-type extractIncludeConfig struct {
-	parent *Config
-}
-
-func (a *extractIncludeConfig) Get() (string, error) {
-	{
-		p := a.parent.yml.ExtractInclude
-		if p != nil {
-			text, err := p.MarshalText()
-			return string(text), err
-		}
-	}
-	return "", nil
-}
-
-func (a *extractIncludeConfig) Set(value string) error {
-	{
-		p := a.parent.yml.ExtractInclude
-		if p == nil {
-			p = new(ExtractInclude)
-		}
-		if err := p.UnmarshalText([]byte(value)); err != nil {
-			return err
-		}
-		a.parent.yml.ExtractInclude = p
-	}
-	return nil
-}
-
-func (a *extractIncludeConfig) Unset() {
-	a.parent.yml.ExtractInclude = nil
 }
 
 type architectureConfig struct {
