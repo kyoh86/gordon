@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -76,13 +75,6 @@ func assetOpener(ev env.Env, asset github.ReleaseAsset) archive.Opener {
 	return nil
 }
 
-func reg(pattern string) (*regexp.Regexp, error) {
-	if pattern == "" {
-		return nil, nil
-	}
-	return regexp.Compile(pattern)
-}
-
 var mkdirAllOnce sync.Once
 
 func download(ctx context.Context, ev env.Env, client *hub.Client, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener, update bool) error {
@@ -116,12 +108,13 @@ func download(ctx context.Context, ev env.Env, client *hub.Client, repo *gogh.Re
 		if retErr != nil {
 			return
 		}
-		bin := filepath.Join(ev.Root(), info.Name())
+		path := filepath.Join(ev.Root(), info.Name())
 		flag := os.O_CREATE | os.O_EXCL | os.O_WRONLY
 		if update {
 			flag = os.O_TRUNC | os.O_WRONLY
 		}
-		file, err := os.OpenFile(bin, flag, info.Mode())
+
+		file, err := os.OpenFile(path, flag, info.Mode())
 		if err != nil {
 			return err
 		}

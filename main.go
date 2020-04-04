@@ -34,7 +34,7 @@ func main() {
 	for _, f := range []func(*kingpin.Application) (string, func() error){
 		configGetAll,
 		configGet,
-		configPut,
+		configSet,
 		configUnset,
 
 		get,
@@ -65,12 +65,12 @@ func configGet(app *kingpin.Application) (string, func() error) {
 	})
 }
 
-func configPut(app *kingpin.Application) (string, func() error) {
+func configSet(app *kingpin.Application) (string, func() error) {
 	var (
 		name  string
 		value string
 	)
-	cmd := app.GetCommand("config").Command("put", "put an option").Alias("set")
+	cmd := app.GetCommand("config").Command("set", "set an option")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 	cmd.Arg("value", "option value").Required().StringVar(&value)
 
