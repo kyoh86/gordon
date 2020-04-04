@@ -12,6 +12,9 @@ type Envar struct {
 	GithubUser   *GithubUser
 	Architecture *Architecture
 	OS           *OS
+	Cache        *Cache
+	Bin          *Bin
+	Man          *Man
 	Root         *Root
 	Hooks        *Hooks
 }
@@ -56,6 +59,36 @@ func getEnvar(prefix string) (envar Envar, err error) {
 				return envar, err
 			}
 			envar.OS = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "CACHE")
+		if v != "" {
+			var value Cache
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.Cache = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "BIN")
+		if v != "" {
+			var value Bin
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.Bin = &value
+		}
+	}
+	{
+		v := os.Getenv(prefix + "MAN")
+		if v != "" {
+			var value Man
+			if err = value.UnmarshalText([]byte(v)); err != nil {
+				return envar, err
+			}
+			envar.Man = &value
 		}
 	}
 	{

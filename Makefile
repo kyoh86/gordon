@@ -9,8 +9,11 @@ gen-clear:
 
 gen: gen-clear internal/env/go_dist_gen.go
 	go generate ./...
-	interfacer -for github.com/kyoh86/gordon/internal/env.Access -as env.Env -o internal/env/env_gen.go
-	mockgen -source internal/env/env_gen.go -destination internal/command/env_mock_test.go -package command_test
+	interfacer -for github.com/kyoh86/gordon/internal/env.Access -as command.Env -o internal/command/env_gen.go
+	mockgen -source internal/command/env_gen.go -destination internal/command/env_mock_test.go -package command_test
+	
+	interfacer -for github.com/kyoh86/gordon/internal/env.Access -as gordon.Env -o internal/gordon/env_gen.go
+	mockgen -source internal/gordon/env_gen.go -destination internal/gordon/env_mock_test.go -package gordon_test
 	
 	interfacer -for github.com/kyoh86/gordon/internal/hub.Client -as command.HubClient -o internal/command/hub_gen.go
 	mockgen -source internal/command/hub_gen.go -destination internal/command/hub_mock_test.go -package command_test

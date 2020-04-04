@@ -60,7 +60,7 @@ func configGet(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("get", "get an option")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 
-	return wrapConfigurableCommand(cmd, func(_ env.Env, cfg *env.Config) error {
+	return wrapConfigurableCommand(cmd, func(_ command.Env, cfg *env.Config) error {
 		return command.ConfigGet(cfg, name)
 	})
 }
@@ -74,7 +74,7 @@ func configSet(app *kingpin.Application) (string, func() error) {
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 	cmd.Arg("value", "option value").Required().StringVar(&value)
 
-	return wrapConfigurableCommand(cmd, func(ev env.Env, cfg *env.Config) error {
+	return wrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
 		return command.ConfigSet(ev, cfg, name, value)
 	})
 }
@@ -86,7 +86,7 @@ func configUnset(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("unset", "unset an option").Alias("rm")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 
-	return wrapConfigurableCommand(cmd, func(ev env.Env, cfg *env.Config) error {
+	return wrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
 		return command.ConfigUnset(ev, cfg, name)
 	})
 }
@@ -102,7 +102,7 @@ func get(app *kingpin.Application) (string, func() error) {
 	cmd.Flag("update", "Update files").Short('u').BoolVar(&update)
 	cmd.Flag("tag", "Target tag").StringVar(&tag)
 
-	return wrapCommand(cmd, func(ev env.Env) error {
+	return wrapCommand(cmd, func(ev command.Env) error {
 		return command.Download(context.Background(), ev, spec, tag, update)
 	})
 
@@ -150,7 +150,7 @@ func openYAML(filename string) (io.Reader, func() error, error) {
 	return reader, teardown, nil
 }
 
-func wrapCommand(cmd *kingpin.CmdClause, f func(env.Env) error) (string, func() error) {
+func wrapCommand(cmd *kingpin.CmdClause, f func(command.Env) error) (string, func() error) {
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() (retErr error) {
@@ -174,7 +174,7 @@ func wrapCommand(cmd *kingpin.CmdClause, f func(env.Env) error) (string, func() 
 	}
 }
 
-func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(env.Env, *env.Config) error) (string, func() error) {
+func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(command.Env, *env.Config) error) (string, func() error) {
 	var configFile string
 	setConfigFlag(cmd, &configFile)
 	return cmd.FullCommand(), func() (retErr error) {

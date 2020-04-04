@@ -13,13 +13,12 @@ import (
 	"github.com/google/go-github/v29/github"
 	"github.com/kyoh86/gogh/gogh"
 	"github.com/kyoh86/gordon/internal/archive"
-	"github.com/kyoh86/gordon/internal/env"
 	"github.com/kyoh86/gordon/internal/hub"
 )
 
 // Download a package from GitHub Release.
 // If `tag` is empty, it will download from the latest release.
-func Download(ctx context.Context, ev env.Env, spec gogh.RepoSpec, tag string, update bool) error {
+func Download(ctx context.Context, ev Env, spec gogh.RepoSpec, tag string, update bool) error {
 	repo, err := spec.Validate(ev)
 	if err != nil {
 		return err
@@ -53,7 +52,7 @@ func Download(ctx context.Context, ev env.Env, spec gogh.RepoSpec, tag string, u
 	return fmt.Errorf("there's no installable asset in release %s", release.GetTagName())
 }
 
-func assetOpener(ev env.Env, asset github.ReleaseAsset) archive.Opener {
+func assetOpener(ev Env, asset github.ReleaseAsset) archive.Opener {
 	name := asset.GetName()
 	if !strings.Contains(name, ev.Architecture()) {
 		return nil
@@ -77,7 +76,7 @@ func assetOpener(ev env.Env, asset github.ReleaseAsset) archive.Opener {
 
 var mkdirAllOnce sync.Once
 
-func download(ctx context.Context, ev env.Env, client *hub.Client, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener, update bool) error {
+func download(ctx context.Context, ev Env, client *hub.Client, repo *gogh.Repo, asset github.ReleaseAsset, opener archive.Opener, update bool) error {
 	log.Printf("info: download %s", asset.GetName())
 	reader, err := client.Asset(ctx, repo, asset.GetID())
 	if err != nil {

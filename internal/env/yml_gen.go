@@ -12,6 +12,9 @@ type YAML struct {
 	GithubUser   *GithubUser   `yaml:"githubUser,omitempty"`
 	Architecture *Architecture `yaml:"architecture,omitempty"`
 	OS           *OS           `yaml:"os,omitempty"`
+	Cache        *Cache        `yaml:"cache,omitempty"`
+	Bin          *Bin          `yaml:"bin,omitempty"`
+	Man          *Man          `yaml:"man,omitempty"`
 	Root         *Root         `yaml:"root,omitempty"`
 	Hooks        *Hooks        `yaml:"hooks,omitempty"`
 }

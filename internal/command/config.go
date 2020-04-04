@@ -8,7 +8,7 @@ import (
 	keyring "github.com/zalando/go-keyring"
 )
 
-func ConfigGetAll(_ env.Env, cfg *env.Config) error {
+func ConfigGetAll(_ Env, cfg *env.Config) error {
 	for _, name := range env.PropertyNames() {
 		opt, _ := cfg.Property(name) // ignore error: config.OptionNames covers all accessor
 		value, err := opt.Get()
@@ -40,7 +40,7 @@ func ConfigGet(cfg *env.Config, optionName string) error {
 	return nil
 }
 
-func ConfigSet(ev env.Env, cfg *env.Config, optionName, optionValue string) error {
+func ConfigSet(ev Env, cfg *env.Config, optionName, optionValue string) error {
 	if optionName == "github.token" {
 		host, user := ev.GithubHost(), ev.GithubUser()
 		if err := keyring.Set(strings.Join([]string{host, env.KeyringService}, "."), user, optionValue); err != nil {
@@ -56,7 +56,7 @@ func ConfigSet(ev env.Env, cfg *env.Config, optionName, optionValue string) erro
 	return opt.Set(optionValue)
 }
 
-func ConfigUnset(ev env.Env, cfg *env.Config, optionName string) error {
+func ConfigUnset(ev Env, cfg *env.Config, optionName string) error {
 	if optionName == "github.token" {
 		host, user := ev.GithubHost(), ev.GithubUser()
 

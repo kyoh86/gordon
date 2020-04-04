@@ -1,6 +1,7 @@
 package env
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 
@@ -41,6 +42,30 @@ type OS struct{ types.StringPropertyBase }
 
 func (*OS) Default() interface{} {
 	return runtime.GOOS
+}
+
+type Bin struct {
+	extypes.Path
+}
+
+func (*Bin) Default() interface{} {
+	return filepath.Join(os.Getenv("HOME"), ".local", "bin")
+}
+
+type Man struct {
+	extypes.Path
+}
+
+func (*Man) Default() interface{} {
+	return filepath.Join(os.Getenv("HOME"), ".local", "man")
+}
+
+type Cache struct {
+	extypes.Path
+}
+
+func (*Cache) Default() interface{} {
+	return filepath.Join(xdg.CacheHome(), "gordon")
 }
 
 type Root struct {

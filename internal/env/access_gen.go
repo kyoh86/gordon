@@ -49,6 +49,30 @@ func buildAccess(yml YAML, envarPrefix string) (access Access, err error) {
 		access.os = envar.OS.Value().(string)
 	}
 
+	access.cache = new(Cache).Default().(string)
+	if yml.Cache != nil {
+		access.cache = yml.Cache.Value().(string)
+	}
+	if envar.Cache != nil {
+		access.cache = envar.Cache.Value().(string)
+	}
+
+	access.bin = new(Bin).Default().(string)
+	if yml.Bin != nil {
+		access.bin = yml.Bin.Value().(string)
+	}
+	if envar.Bin != nil {
+		access.bin = envar.Bin.Value().(string)
+	}
+
+	access.man = new(Man).Default().(string)
+	if yml.Man != nil {
+		access.man = yml.Man.Value().(string)
+	}
+	if envar.Man != nil {
+		access.man = envar.Man.Value().(string)
+	}
+
 	access.root = new(Root).Default().(string)
 	if yml.Root != nil {
 		access.root = yml.Root.Value().(string)
@@ -73,6 +97,9 @@ type Access struct {
 	githubUser   string
 	architecture string
 	os           string
+	cache        string
+	bin          string
+	man          string
 	root         string
 	hooks        []string
 }
@@ -91,6 +118,18 @@ func (a *Access) Architecture() string {
 
 func (a *Access) OS() string {
 	return a.os
+}
+
+func (a *Access) Cache() string {
+	return a.cache
+}
+
+func (a *Access) Bin() string {
+	return a.bin
+}
+
+func (a *Access) Man() string {
+	return a.man
 }
 
 func (a *Access) Root() string {

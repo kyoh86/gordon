@@ -33,7 +33,7 @@ func (c *Config) Save(yamlWriter io.Writer) error {
 }
 
 func PropertyNames() []string {
-	return []string{"github.host", "github.user", "architecture", "os", "root", "hooks"}
+	return []string{"github.host", "github.user", "architecture", "os", "cache", "bin", "man", "root", "hooks"}
 }
 
 func (a *Config) Property(name string) (types.Config, error) {
@@ -46,6 +46,12 @@ func (a *Config) Property(name string) (types.Config, error) {
 		return &architectureConfig{parent: a}, nil
 	case "os":
 		return &osConfig{parent: a}, nil
+	case "cache":
+		return &cacheConfig{parent: a}, nil
+	case "bin":
+		return &binConfig{parent: a}, nil
+	case "man":
+		return &manConfig{parent: a}, nil
 	case "root":
 		return &rootConfig{parent: a}, nil
 	case "hooks":
@@ -184,6 +190,105 @@ func (a *osConfig) Set(value string) error {
 
 func (a *osConfig) Unset() {
 	a.parent.yml.OS = nil
+}
+
+type cacheConfig struct {
+	parent *Config
+}
+
+func (a *cacheConfig) Get() (string, error) {
+	{
+		p := a.parent.yml.Cache
+		if p != nil {
+			text, err := p.MarshalText()
+			return string(text), err
+		}
+	}
+	return "", nil
+}
+
+func (a *cacheConfig) Set(value string) error {
+	{
+		p := a.parent.yml.Cache
+		if p == nil {
+			p = new(Cache)
+		}
+		if err := p.UnmarshalText([]byte(value)); err != nil {
+			return err
+		}
+		a.parent.yml.Cache = p
+	}
+	return nil
+}
+
+func (a *cacheConfig) Unset() {
+	a.parent.yml.Cache = nil
+}
+
+type binConfig struct {
+	parent *Config
+}
+
+func (a *binConfig) Get() (string, error) {
+	{
+		p := a.parent.yml.Bin
+		if p != nil {
+			text, err := p.MarshalText()
+			return string(text), err
+		}
+	}
+	return "", nil
+}
+
+func (a *binConfig) Set(value string) error {
+	{
+		p := a.parent.yml.Bin
+		if p == nil {
+			p = new(Bin)
+		}
+		if err := p.UnmarshalText([]byte(value)); err != nil {
+			return err
+		}
+		a.parent.yml.Bin = p
+	}
+	return nil
+}
+
+func (a *binConfig) Unset() {
+	a.parent.yml.Bin = nil
+}
+
+type manConfig struct {
+	parent *Config
+}
+
+func (a *manConfig) Get() (string, error) {
+	{
+		p := a.parent.yml.Man
+		if p != nil {
+			text, err := p.MarshalText()
+			return string(text), err
+		}
+	}
+	return "", nil
+}
+
+func (a *manConfig) Set(value string) error {
+	{
+		p := a.parent.yml.Man
+		if p == nil {
+			p = new(Man)
+		}
+		if err := p.UnmarshalText([]byte(value)); err != nil {
+			return err
+		}
+		a.parent.yml.Man = p
+	}
+	return nil
+}
+
+func (a *manConfig) Unset() {
+	a.parent.yml.Man = nil
 }
 
 type rootConfig struct {
