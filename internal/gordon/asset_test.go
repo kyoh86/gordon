@@ -56,6 +56,7 @@ func TestContainsWord(t *testing.T) {
 		substr: "substr",
 	}}
 	for _, contains := range containsSet {
+		contains := contains
 		t.Run(contains.title, func(t *testing.T) {
 			if !containsWord(contains.input, contains.substr) {
 				t.Errorf("substr %q is not found in %q", contains.substr, contains.input)
@@ -93,6 +94,7 @@ func TestContainsWord(t *testing.T) {
 		substr: "substr",
 	}}
 	for _, notContains := range notContainsSet {
+		notContains := notContains
 		t.Run(notContains.title, func(t *testing.T) {
 			if containsWord(notContains.input, notContains.substr) {
 				t.Errorf("substr %q is found in %q", notContains.substr, notContains.input)

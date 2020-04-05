@@ -6,10 +6,7 @@ type Repo struct {
 }
 
 func RepoApp(repo Repo) App {
-	return App{
-		owner: repo.owner,
-		name:  repo.name,
-	}
+	return App(repo)
 }
 
 func (r Repo) Spec() AppSpec {

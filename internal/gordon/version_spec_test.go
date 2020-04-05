@@ -40,6 +40,7 @@ func TestVersionSpec(t *testing.T) {
 		expectName:  "gordon",
 		expectTag:   "v0.0.1+112.us-alpha.jp.us",
 	}} {
+		success := success
 		t.Run(success.title, func(t *testing.T) {
 			app, err := gordon.ParseVersionSpec(success.input)
 			if err != nil {
@@ -100,6 +101,7 @@ func TestVersionSpec(t *testing.T) {
 		title: "too many slashes",
 		input: "kyoh86/gordon/thomas",
 	}} {
+		failure := failure
 		t.Run(failure.title, func(t *testing.T) {
 			app, err := gordon.ParseVersionSpec(failure.input)
 			if err == nil {

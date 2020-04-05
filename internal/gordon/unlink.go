@@ -2,7 +2,7 @@ package gordon
 
 import (
 	"os"
-	"path/filepath"
+	"strings"
 )
 
 func unlinker(target string) func(string, os.FileInfo) error {
@@ -14,7 +14,7 @@ func unlinker(target string) func(string, os.FileInfo) error {
 		if err != nil {
 			return err
 		}
-		if !filepath.HasPrefix(destination, target) {
+		if !strings.HasPrefix(destination, target) {
 			return nil
 		}
 		return os.Remove(path)
