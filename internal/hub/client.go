@@ -45,7 +45,7 @@ func getToken(ev gordon.Env) (string, error) {
 	if ev.GithubUser() == "" {
 		return "", errors.New("github.user is empty")
 	}
-	envar := os.Getenv("GOGH_GITHUB_TOKEN")
+	envar := os.Getenv("GORDON_GITHUB_TOKEN")
 	if envar != "" {
 		return envar, nil
 	}
@@ -53,12 +53,15 @@ func getToken(ev gordon.Env) (string, error) {
 }
 
 func oauth2Client(authContext context.Context, ev gordon.Env) (*http.Client, error) {
+	if ev.GithubUser() == "" {
+		return http.DefaultClient, nil
+	}
 	token, err := getToken(ev)
 	if err != nil {
 		return nil, err
 	}
 	if token == "" {
-		return nil, errors.New("github.token is empty")
+		return http.DefaultClient, nil
 	}
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	return oauth2.NewClient(authContext, ts), nil

@@ -16,6 +16,7 @@ require (
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.5.1
 	github.com/zalando/go-keyring v0.0.0-20200121091418-667557018717
+	golang.org/x/crypto v0.0.0-20200403201458-baeed622b8d8 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200331124033-c3d80250170d // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c

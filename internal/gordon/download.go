@@ -43,6 +43,10 @@ func openAsset(ctx context.Context, client *github.Client, release Release) (arc
 }
 
 func extractAsset(path string, unarchiver archive.Unarchiver) error {
+	if err := os.MkdirAll(path, 0777); err != nil {
+		return err
+	}
+
 	return unarchiver.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
 		entryReader, err := entry()
 		if err != nil {

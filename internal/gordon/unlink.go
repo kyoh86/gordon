@@ -3,8 +3,6 @@ package gordon
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/saracen/walker"
 )
 
 func unlinker(target string) func(string, os.FileInfo) error {
@@ -16,7 +14,7 @@ func unlinker(target string) func(string, os.FileInfo) error {
 		if err != nil {
 			return err
 		}
-		if filepath.HasPrefix(destination, target) {
+		if !filepath.HasPrefix(destination, target) {
 			return nil
 		}
 		return os.Remove(path)
@@ -25,10 +23,10 @@ func unlinker(target string) func(string, os.FileInfo) error {
 
 func Unlink(ev Env, app App) error {
 	unlink := unlinker(AppPath(ev, app))
-	if err := walker.Walk(ev.Bin(), unlink); err != nil {
+	if err := walkIfDir(ev.Bin(), unlink); err != nil {
 		return err
 	}
-	if err := walker.Walk(ev.Man(), unlink); err != nil {
+	if err := walkIfDir(ev.Man(), unlink); err != nil {
 		return err
 	}
 	return nil

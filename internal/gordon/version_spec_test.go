@@ -35,10 +35,10 @@ func TestVersionSpec(t *testing.T) {
 		expectTag:   "",
 	}, {
 		title:       "complex-tag",
-		input:       "kyoh86/gordon@v0.0.1-alpha@jp/us",
+		input:       "kyoh86/gordon@v0.0.1+112.us-alpha.jp.us",
 		expectOwner: "kyoh86",
 		expectName:  "gordon",
-		expectTag:   "v0.0.1-alpha@jp/us",
+		expectTag:   "v0.0.1+112.us-alpha.jp.us",
 	}} {
 		t.Run(success.title, func(t *testing.T) {
 			app, err := gordon.ParseVersionSpec(success.input)
@@ -113,7 +113,7 @@ func TestVersionSpec(t *testing.T) {
 	joined := strings.Join([]string{
 		"kyoh86/gordon@v0.0.1",
 		"kyoh86/gordon",
-		"kyoh86/gordon@v0.0.1-alpha@jp/us",
+		"kyoh86/gordon@v0.0.1+112.us-alpha.jp.us",
 	}, ",")
 	result := specs.String()
 	if joined != result {

@@ -4,22 +4,28 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/saracen/walker"
 )
 
-const executable = 0400
+const executable = 0001
 
 func Link(ev Env, version Version) error {
-	bins := map[string]string{}
-	mans := map[string]string{}
 	// unlink old links
 	if err := Unlink(ev, version.App); err != nil {
 		return err
 	}
 
+	verDir := VersionPath(ev, version)
+	bins := map[string]string{}
+	mans := map[string]string{}
 	// link all executables and mans
-	if err := walker.Walk(VersionPath(ev, version), func(path string, fi os.FileInfo) error {
+	if err := walkIfDir(verDir, func(path string, fi os.FileInfo) error {
+		rel, err := filepath.Rel(verDir, path)
+		if err != nil {
+			return err
+		}
+		if rel != fi.Name() {
+			return nil
+		}
 		switch {
 		case (fi.Mode() & executable) == executable:
 			// executable file
@@ -33,8 +39,18 @@ func Link(ev Env, version Version) error {
 		return err
 	}
 
+	if len(bins) == 0 {
+		return nil
+	}
+
+	if err := os.MkdirAll(ev.Bin(), 0777); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(ev.Man(), 0777); err != nil {
+		return err
+	}
 	for binPath, binName := range bins {
-		if err := os.Link(binPath, filepath.Join(ev.Bin(), binName)); err != nil {
+		if err := os.Symlink(binPath, filepath.Join(ev.Bin(), binName)); err != nil {
 			return err
 		}
 
@@ -44,7 +60,7 @@ func Link(ev Env, version Version) error {
 			continue
 		}
 
-		if err := os.Link(manPath, filepath.Join(ev.Man(), manName)); err != nil {
+		if err := os.Symlink(manPath, filepath.Join(ev.Man(), manName)); err != nil {
 			return err
 		}
 	}

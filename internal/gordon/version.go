@@ -2,17 +2,30 @@ package gordon
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/saracen/walker"
 )
 
 type Version struct {
 	App
-	tag string
+	tag    string
+	semver semver.Version
+}
+
+func (v Version) String() string {
+	return fmt.Sprintf("%s/%s@%s", v.owner, v.name, v.tag)
+}
+
+func (v Version) Tag() string {
+	return v.tag
+}
+
+func (v Version) Semver() semver.Version {
+	return v.semver
 }
 
 var (
@@ -27,6 +40,11 @@ func validateVersionSpec(ev Env, owner, name, tag string) (*Version, error) {
 		},
 		tag: tag,
 	}
+	sv, err := ValidateTag(tag)
+	if err != nil {
+		return nil, err
+	}
+	ver.semver = sv
 	path := VersionPath(ev, ver)
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -43,20 +61,19 @@ func validateVersionSpec(ev Env, owner, name, tag string) (*Version, error) {
 
 func findLatestVersion(ev Env, owner, name string) (*Version, error) {
 	var found bool
-	var newest semver.Version
-	if err := walker.Walk(assetSubPath(ev, owner, name), func(path string, fi os.FileInfo) error {
+	var newest Version
+	if err := walkIfDir(assetSubPath(ev, owner, name), func(path string, fi os.FileInfo) error {
 		if !fi.IsDir() {
 			return nil
 		}
 
-		tag := filepath.Base(path)
-		ver, err := semver.Parse(tag)
+		ver, err := ParseVersionPath(ev, path)
 		if err != nil {
 			// if the tag is not formatted as semver, skip it.
-			return filepath.SkipDir
+			return nil
 		}
-		if ver.GT(newest) {
-			newest = ver
+		if ver.Semver().GT(newest.Semver()) {
+			newest = *ver
 			found = true
 		}
 		return filepath.SkipDir
@@ -66,13 +83,7 @@ func findLatestVersion(ev Env, owner, name string) (*Version, error) {
 	if !found {
 		return nil, ErrVersionNotFound
 	}
-	return &Version{
-		App: App{
-			owner: owner,
-			name:  name,
-		},
-		tag: newest.String(),
-	}, nil
+	return &newest, nil
 }
 
 func FindVersion(ev Env, spec VersionSpec) (*Version, error) {
@@ -84,16 +95,17 @@ func FindVersion(ev Env, spec VersionSpec) (*Version, error) {
 }
 
 func ParseVersionPath(ev Env, path string) (*Version, error) {
-	rel, err := filepath.Rel(ev.Cache(), path)
+	rel, err := filepath.Rel(assetSubPath(ev), path)
 	if err != nil {
 		return nil, err
 	}
 
 	terms := strings.Split(rel, string([]rune{filepath.Separator}))
 	if len(terms) < 3 {
-		return nil, errors.New("invalid version path")
+		return nil, errors.New("too short version path")
 	}
-	if _, err := semver.Parse(terms[2]); err != nil {
+	sv, err := ValidateTag(terms[2])
+	if err != nil {
 		return nil, errors.New("invalid version path")
 	}
 	ver := Version{
@@ -101,7 +113,8 @@ func ParseVersionPath(ev Env, path string) (*Version, error) {
 			owner: terms[0],
 			name:  terms[1],
 		},
-		tag: terms[2],
+		tag:    terms[2],
+		semver: sv,
 	}
 	return &ver, nil
 }
@@ -109,7 +122,7 @@ func ParseVersionPath(ev Env, path string) (*Version, error) {
 type VersionWalker func(Version) error
 
 func WalkVersions(ev Env, walk VersionWalker) error {
-	return walker.Walk(assetSubPath(ev), func(path string, fi os.FileInfo) error {
+	return walkIfDir(assetSubPath(ev), func(path string, fi os.FileInfo) error {
 		if !fi.IsDir() {
 			return nil
 		}
@@ -136,12 +149,12 @@ func ListVersions(ev Env) ([]Version, error) {
 }
 
 func WalkAppVersions(ev Env, app App, walk VersionWalker) error {
-	return walker.Walk(AppPath(ev, app), func(path string, fi os.FileInfo) error {
+	return walkIfDir(AppPath(ev, app), func(path string, fi os.FileInfo) error {
 		if !fi.IsDir() {
 			return nil
 		}
 		tag := filepath.Base(path)
-		if _, err := semver.Parse(tag); err != nil {
+		if _, err := ValidateTag(tag); err != nil {
 			// if the tag is not formatted as semver, skip it.
 			return filepath.SkipDir
 		}
@@ -164,11 +177,11 @@ func ListAppVersions(ev Env, app App) ([]Version, error) {
 }
 
 func WalkInstalledVersions(ev Env, walk VersionWalker) error {
-	uniq := map[Version]struct{}{}
-	if err := walker.Walk(ev.Bin(), walkLinkedVersions(ev, uniq, walk)); err != nil {
+	uniq := map[string]struct{}{}
+	if err := walkIfDir(ev.Bin(), walkLinkedVersions(ev, uniq, walk)); err != nil {
 		return err
 	}
-	if err := walker.Walk(ev.Man(), walkLinkedVersions(ev, uniq, walk)); err != nil {
+	if err := walkIfDir(ev.Man(), walkLinkedVersions(ev, uniq, walk)); err != nil {
 		return err
 	}
 	return nil
@@ -184,10 +197,10 @@ func ListInstalledVersions(ev Env) ([]Version, error) {
 	}
 	return versions, nil
 }
-func walkLinkedVersions(ev Env, uniq map[Version]struct{}, walk func(Version) error) func(path string, fi os.FileInfo) error {
+func walkLinkedVersions(ev Env, uniq map[string]struct{}, walk func(Version) error) func(path string, fi os.FileInfo) error {
 	return func(path string, fi os.FileInfo) error {
 		if (fi.Mode() & os.ModeSymlink) != os.ModeSymlink {
-			return filepath.SkipDir
+			return nil
 		}
 		link, err := os.Readlink(path)
 		if err != nil {
@@ -199,13 +212,13 @@ func walkLinkedVersions(ev Env, uniq map[Version]struct{}, walk func(Version) er
 			return nil // ignore invalid link
 		}
 
-		if _, ok := uniq[*ver]; ok {
+		if _, ok := uniq[ver.String()]; ok {
 			return nil
 		}
 		if err := walk(*ver); err != nil {
 			return err
 		}
-		uniq[*ver] = struct{}{}
+		uniq[ver.String()] = struct{}{}
 		return nil
 	}
 }

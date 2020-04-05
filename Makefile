@@ -8,7 +8,7 @@ gen-clear:
 	rm internal/**/*_gen.go
 
 gen: gen-clear internal/env/go_dist_gen.go
-	go generate ./...
+	go generate -x ./...
 	interfacer -for github.com/kyoh86/gordon/internal/env.Access -as command.Env -o internal/command/env_gen.go
 	mockgen -source internal/command/env_gen.go -destination internal/command/env_mock_test.go -package command_test
 	

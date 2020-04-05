@@ -3,15 +3,18 @@ package gordon
 import (
 	"flag"
 	"strings"
+
+	"github.com/blang/semver"
 )
 
 // VersionSpec specifies a release in the GitHub.
 // VersionSpec can accept "owner/name@tag" notation.
 // If "@tag" is ommited, it means latest tag.
 type VersionSpec struct {
-	raw string
 	AppSpec
-	tag string
+	raw    string
+	tag    string
+	semver semver.Version
 }
 
 func (v VersionSpec) Tag() string { return v.tag }
@@ -29,7 +32,14 @@ func (v *VersionSpec) Set(rawRelease string) error {
 		return err
 	}
 
-	v.tag = tag
+	if tag != "" {
+		sv, err := ValidateTag(tag)
+		if err != nil {
+			return err
+		}
+		v.tag = tag
+		v.semver = sv
+	}
 	v.raw = rawRelease
 	return nil
 }
