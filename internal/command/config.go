@@ -2,53 +2,74 @@ package command
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/kyoh86/gordon/internal/context"
+	"github.com/kyoh86/gordon/internal/env"
+	keyring "github.com/zalando/go-keyring"
 )
 
-func ConfigGetAll(cfg *context.Config) error {
-	for _, name := range context.OptionNames() {
-		opt, _ := context.Option(name) // ignore error: context.OptionNames covers all accessor
-		value := opt.Get(cfg)
-		fmt.Printf("%s: %s\n", name, value)
+func ConfigGetAll(_ Env, cfg *env.Config) error {
+	for _, name := range env.PropertyNames() {
+		opt, _ := cfg.Property(name) // ignore error: config.OptionNames covers all accessor
+		value, err := opt.Get()
+		if err != nil {
+			return err
+		}
+		if value == "" {
+			// NOTE: to avoid a bug in the example test...
+			// https://github.com/golang/go/issues/26460
+			fmt.Printf("%s:\n", name)
+		} else {
+			fmt.Printf("%s: %s\n", name, value)
+		}
 	}
+	fmt.Println("github.token: *****")
 	return nil
 }
 
-func ConfigGet(cfg *context.Config, optionName string) error {
-	opt, err := context.Option(optionName)
+func ConfigGet(cfg *env.Config, optionName string) error {
+	opt, err := cfg.Property(optionName)
 	if err != nil {
 		return err
 	}
-	value := opt.Get(cfg)
+	value, err := opt.Get()
+	if err != nil {
+		return err
+	}
 	fmt.Println(value)
 	return nil
 }
 
-func ConfigPut(cfg *context.Config, optionName, optionValue string) error {
-	opt, err := context.Option(optionName)
-	if err != nil {
-		return err
-	}
-	if err := opt.Put(cfg, optionValue); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ConfigUnset(cfg *context.Config, optionName string) error {
-	opt, err := context.Option(optionName)
-	if err != nil {
-		return err
-	}
-	return opt.Unset(cfg)
-}
-
-func ConfigPrompt(cfg *context.Config) error {
-	for _, opt := range context.Options() {
-		if err := opt.Prompt(cfg); err != nil {
+func ConfigSet(ev Env, cfg *env.Config, optionName, optionValue string) error {
+	if optionName == "github.token" {
+		host, user := ev.GithubHost(), ev.GithubUser()
+		if err := keyring.Set(strings.Join([]string{host, env.KeyringService}, "."), user, optionValue); err != nil {
 			return err
 		}
+		return nil
 	}
+
+	opt, err := cfg.Property(optionName)
+	if err != nil {
+		return err
+	}
+	return opt.Set(optionValue)
+}
+
+func ConfigUnset(ev Env, cfg *env.Config, optionName string) error {
+	if optionName == "github.token" {
+		host, user := ev.GithubHost(), ev.GithubUser()
+
+		if err := keyring.Delete(strings.Join([]string{host, env.KeyringService}, "."), user); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	opt, err := cfg.Property(optionName)
+	if err != nil {
+		return err
+	}
+	opt.Unset()
 	return nil
 }
