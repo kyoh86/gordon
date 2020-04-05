@@ -3,32 +3,32 @@ package gordon
 import (
 	"context"
 	"errors"
-	"path/filepath"
 	"strings"
 
 	"github.com/google/go-github/v29/github"
 	"github.com/kyoh86/gordon/internal/archive"
 )
 
-type App struct {
-	owner string
-	name  string
-}
-
 type Release struct {
-	App
+	Repo
 	tag string
 
 	asset  Asset
 	opener archive.Opener
 }
 
-func AppPath(ev Env, app *App) string {
-	return filepath.Join(ev.Cache(), "asset", app.owner, app.name)
+func (r Release) Spec() VersionSpec {
+	return VersionSpec{
+		AppSpec: r.Repo.Spec(),
+		tag:     r.tag,
+	}
 }
 
-func ReleasePath(ev Env, release *Release) string {
-	return filepath.Join(ev.Cache(), "asset", release.owner, release.name, release.tag)
+func ReleaseVersion(release Release) Version {
+	return Version{
+		App: RepoApp(release.Repo),
+		tag: release.tag,
+	}
 }
 
 type Asset struct {
@@ -44,7 +44,11 @@ func (a Release) Owner() string { return a.owner }
 func (a Release) Name() string  { return a.name }
 func (a Release) Tag() string   { return a.tag }
 
-func FindRelease(ctx context.Context, ev Env, client *github.Client, spec AppSpec) (*Release, error) {
+var (
+	ErrAssetNotFound = errors.New("asset not found")
+)
+
+func FindRelease(ctx context.Context, ev Env, client *github.Client, spec VersionSpec) (*Release, error) {
 	release, err := findRelease(ctx, client, spec)
 	if err != nil {
 		return nil, err
@@ -53,7 +57,7 @@ func FindRelease(ctx context.Context, ev Env, client *github.Client, spec AppSpe
 	for _, asset := range release.Assets {
 		if opener := assetOpener(ev, asset); opener != nil {
 			return &Release{
-				App: App{
+				Repo: Repo{
 					owner: spec.owner,
 					name:  spec.name,
 				},
@@ -71,15 +75,16 @@ func FindRelease(ctx context.Context, ev Env, client *github.Client, spec AppSpe
 			}, nil
 		}
 	}
-	return nil, errors.New("asset not found")
+	return nil, ErrAssetNotFound
 }
 
-func findRelease(ctx context.Context, client *github.Client, spec AppSpec) (*github.RepositoryRelease, error) {
-	if spec.Version() == "" {
+func findRelease(ctx context.Context, client *github.Client, spec VersionSpec) (*github.RepositoryRelease, error) {
+	if spec.tag == "" {
+		//UNDONE: list releases and find newest vertag
 		release, _, err := client.Repositories.GetLatestRelease(ctx, spec.Owner(), spec.Name())
 		return release, err
 	}
-	release, _, err := client.Repositories.GetReleaseByTag(ctx, spec.Owner(), spec.Name(), spec.Version())
+	release, _, err := client.Repositories.GetReleaseByTag(ctx, spec.Owner(), spec.Name(), spec.Tag())
 	return release, err
 }
 

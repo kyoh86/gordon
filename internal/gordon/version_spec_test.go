@@ -7,8 +7,8 @@ import (
 	"github.com/kyoh86/gordon/internal/gordon"
 )
 
-func TestAppSpec(t *testing.T) {
-	var specs gordon.AppSpecs
+func TestVersionSpec(t *testing.T) {
+	var specs gordon.VersionSpecs
 	if !specs.IsCumulative() {
 		t.Fatalf("kingpin.Flag accepts multi values if the `IsCumulative` returns true")
 	}
@@ -16,32 +16,32 @@ func TestAppSpec(t *testing.T) {
 		t.Errorf("empty list should be empty string, but %q", specs.String())
 	}
 	for _, success := range []struct {
-		title         string
-		input         string
-		expectOwner   string
-		expectName    string
-		expectVersion string
+		title       string
+		input       string
+		expectOwner string
+		expectName  string
+		expectTag   string
 	}{{
-		title:         "full-spec",
-		input:         "kyoh86/gordon@v0.0.1",
-		expectOwner:   "kyoh86",
-		expectName:    "gordon",
-		expectVersion: "v0.0.1",
+		title:       "full-spec",
+		input:       "kyoh86/gordon@v0.0.1",
+		expectOwner: "kyoh86",
+		expectName:  "gordon",
+		expectTag:   "v0.0.1",
 	}, {
-		title:         "no-version",
-		input:         "kyoh86/gordon",
-		expectOwner:   "kyoh86",
-		expectName:    "gordon",
-		expectVersion: "",
+		title:       "no-tag",
+		input:       "kyoh86/gordon",
+		expectOwner: "kyoh86",
+		expectName:  "gordon",
+		expectTag:   "",
 	}, {
-		title:         "complex-version",
-		input:         "kyoh86/gordon@v0.0.1-alpha@jp/us",
-		expectOwner:   "kyoh86",
-		expectName:    "gordon",
-		expectVersion: "v0.0.1-alpha@jp/us",
+		title:       "complex-tag",
+		input:       "kyoh86/gordon@v0.0.1-alpha@jp/us",
+		expectOwner: "kyoh86",
+		expectName:  "gordon",
+		expectTag:   "v0.0.1-alpha@jp/us",
 	}} {
 		t.Run(success.title, func(t *testing.T) {
-			app, err := gordon.ParseAppSpec(success.input)
+			app, err := gordon.ParseVersionSpec(success.input)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -51,8 +51,8 @@ func TestAppSpec(t *testing.T) {
 			if success.expectName != app.Name() {
 				t.Errorf("expect Name   %q but %q", success.expectName, app.Name())
 			}
-			if success.expectVersion != app.Version() {
-				t.Errorf("expect Version %q but %q", success.expectVersion, app.Version())
+			if success.expectTag != app.Tag() {
+				t.Errorf("expect Tag %q but %q", success.expectTag, app.Tag())
 			}
 			if success.input != app.String() {
 				t.Errorf("expect String %q but %q", success.input, app.String())
@@ -101,7 +101,7 @@ func TestAppSpec(t *testing.T) {
 		input: "kyoh86/gordon/thomas",
 	}} {
 		t.Run(failure.title, func(t *testing.T) {
-			app, err := gordon.ParseAppSpec(failure.input)
+			app, err := gordon.ParseVersionSpec(failure.input)
 			if err == nil {
 				t.Errorf("expect error but nil and got app %q", app)
 			}

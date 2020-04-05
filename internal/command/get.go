@@ -7,7 +7,7 @@ import (
 	"github.com/kyoh86/gordon/internal/hub"
 )
 
-func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
+func Get(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 	client, err := hub.NewClient(ctx, ev)
 	if err != nil {
 		return err
@@ -18,14 +18,10 @@ func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 		return err
 	}
 
-	version, err := gordon.Download(ctx, ev, client, *release)
+	ver, err := gordon.Download(ctx, ev, client, *release)
 	if err != nil {
 		return err
 	}
-
-	if err := gordon.Link(ev, *version); err != nil {
-		return err
-	}
-
+	_ = ver
 	return nil
 }

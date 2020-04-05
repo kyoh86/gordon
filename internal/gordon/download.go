@@ -11,22 +11,24 @@ import (
 	"github.com/kyoh86/gordon/internal/archive"
 )
 
-func Download(ctx context.Context, ev Env, client *github.Client, release *Release) error {
-	path := ReleasePath(ev, release)
+func Download(ctx context.Context, ev Env, client *github.Client, release Release) (*Version, error) {
+	version := ReleaseVersion(release)
+	path := VersionPath(ev, version)
+	// UNDONE: if the version already exist
 	if err := os.MkdirAll(path, 0777); err != nil {
-		return err
+		return nil, err
 	}
 	unarchiver, err := openAsset(ctx, client, release)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := extractAsset(path, unarchiver); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &version, nil
 }
 
-func openAsset(ctx context.Context, client *github.Client, release *Release) (archive.Unarchiver, error) {
+func openAsset(ctx context.Context, client *github.Client, release Release) (archive.Unarchiver, error) {
 	reader, _, err := client.Repositories.DownloadReleaseAsset(
 		ctx,
 		release.owner,

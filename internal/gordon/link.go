@@ -10,43 +10,16 @@ import (
 
 const executable = 0400
 
-func unlinker(target string) func(string, os.FileInfo) error {
-	return func(path string, fi os.FileInfo) error {
-		if (fi.Mode() & os.ModeSymlink) != os.ModeSymlink {
-			return nil
-		}
-		destination, err := os.Readlink(path)
-		if err != nil {
-			return err
-		}
-		if filepath.HasPrefix(destination, target) {
-			return nil
-		}
-		return os.Remove(path)
-	}
-}
-
-func Unlink(ev Env, app *App) error {
-	unlink := unlinker(AppPath(ev, app))
-	if err := walker.Walk(ev.Bin(), unlink); err != nil {
-		return err
-	}
-	if err := walker.Walk(ev.Man(), unlink); err != nil {
-		return err
-	}
-	return nil
-}
-
-func Link(ev Env, release *Release) error {
+func Link(ev Env, version Version) error {
 	bins := map[string]string{}
 	mans := map[string]string{}
 	// unlink old links
-	if err := Unlink(ev, &release.App); err != nil {
+	if err := Unlink(ev, version.App); err != nil {
 		return err
 	}
 
 	// link all executables and mans
-	if err := walker.Walk(ReleasePath(ev, release), func(path string, fi os.FileInfo) error {
+	if err := walker.Walk(VersionPath(ev, version), func(path string, fi os.FileInfo) error {
 		switch {
 		case (fi.Mode() & executable) == executable:
 			// executable file

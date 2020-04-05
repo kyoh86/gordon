@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/golang/mock v1.4.1
 	github.com/google/go-github/v29 v29.0.3

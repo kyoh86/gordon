@@ -9,29 +9,20 @@ import (
 )
 
 // AppSpec specifies a release in the GitHub.
-// AppSpec can accept "owner/name@version" notation.
-// If "@version" is ommited, it means latest version.
+// AppSpec can accept "owner/name@tag" notation.
+// If "@tag" is ommited, it means latest tag.
 type AppSpec struct {
-	raw     string
-	owner   string
-	name    string
-	version string
+	raw   string
+	owner string
+	name  string
 }
 
-func (a AppSpec) Owner() string   { return a.owner }
-func (a AppSpec) Name() string    { return a.name }
-func (a AppSpec) Version() string { return a.version }
+func (a AppSpec) Owner() string { return a.owner }
+func (a AppSpec) Name() string  { return a.name }
 
 // Set text as AppSpec
 func (a *AppSpec) Set(rawApp string) error {
-	var version string
-
-	terms := strings.SplitN(rawApp, "@", 2)
-	if len(terms) == 2 {
-		version = terms[1]
-	}
-
-	terms = strings.Split(terms[0], "/")
+	terms := strings.Split(rawApp, "/")
 	switch len(terms) {
 	case 1:
 		return fmt.Errorf("no slash in the app spec %q", rawApp)
@@ -51,7 +42,6 @@ func (a *AppSpec) Set(rawApp string) error {
 
 	a.owner = terms[0]
 	a.name = terms[1]
-	a.version = version
 	a.raw = rawApp
 	return nil
 }
@@ -69,32 +59,6 @@ func ParseAppSpec(rawApp string) (*AppSpec, error) {
 	}
 	return &app, nil
 }
-
-// AppSpecs is array of AppSpec
-type AppSpecs []AppSpec
-
-// Set will add a text to AppSpecs as a AppSpec
-func (a *AppSpecs) Set(value string) error {
-	app := new(AppSpec)
-	if err := app.Set(value); err != nil {
-		return err
-	}
-	*a = append(*a, *app)
-	return nil
-}
-
-func (a AppSpecs) String() string {
-	if len(a) == 0 {
-		return ""
-	}
-	strs := make([]string, 0, len(a))
-	for _, app := range a {
-		strs = append(strs, app.String())
-	}
-	return strings.Join(strs, ",")
-}
-
-func (AppSpecs) IsCumulative() bool { return true }
 
 var invalidNameRegexp = regexp.MustCompile(`[^\w\-\.]`)
 

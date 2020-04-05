@@ -3,17 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/comail/colog"
 	"github.com/kyoh86/gogh/gogh"
 	"github.com/kyoh86/gordon/internal/command"
 	"github.com/kyoh86/gordon/internal/env"
-	"github.com/kyoh86/xdg"
+	"github.com/kyoh86/gordon/internal/gordon"
+	"github.com/kyoh86/gordon/internal/mainutil"
 )
 
 // nolint
@@ -37,7 +35,21 @@ func main() {
 		configSet,
 		configUnset,
 
+		download,
+
 		get,
+		install,
+		// reinstall,
+		// link,
+		// relink,
+		// unlink,
+		uninstall,
+		cleanup,
+
+		dump,
+
+		dump,
+		restore,
 	} {
 		key, run := f(app)
 		cmds[key] = run
@@ -50,7 +62,7 @@ func main() {
 func configGetAll(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("get-all", "get all options").Alias("list").Alias("ls")
 
-	return wrapConfigurableCommand(cmd, command.ConfigGetAll)
+	return mainutil.WrapConfigurableCommand(cmd, command.ConfigGetAll)
 }
 
 func configGet(app *kingpin.Application) (string, func() error) {
@@ -60,7 +72,7 @@ func configGet(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("get", "get an option")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 
-	return wrapConfigurableCommand(cmd, func(_ command.Env, cfg *env.Config) error {
+	return mainutil.WrapConfigurableCommand(cmd, func(_ command.Env, cfg *env.Config) error {
 		return command.ConfigGet(cfg, name)
 	})
 }
@@ -74,7 +86,7 @@ func configSet(app *kingpin.Application) (string, func() error) {
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 	cmd.Arg("value", "option value").Required().StringVar(&value)
 
-	return wrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
+	return mainutil.WrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
 		return command.ConfigSet(ev, cfg, name, value)
 	})
 }
@@ -86,126 +98,89 @@ func configUnset(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("unset", "unset an option").Alias("rm")
 	cmd.Arg("name", "option name").Required().StringVar(&name)
 
-	return wrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
+	return mainutil.WrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
 		return command.ConfigUnset(ev, cfg, name)
 	})
 }
 
-func get(app *kingpin.Application) (string, func() error) {
+func download(app *kingpin.Application) (string, func() error) {
 	var (
 		spec   gogh.RepoSpec
 		update bool
 		tag    string
 	)
-	cmd := app.Command("get", "Clone/sync with a remote repository").Alias("download")
-	cmd.Arg("repository", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&spec)
+	cmd := app.Command("download", "Download from GitHub Release").Alias("download")
 	cmd.Flag("update", "Update files").Short('u').BoolVar(&update)
 	cmd.Flag("tag", "Target tag").StringVar(&tag)
+	cmd.Arg("release", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&spec)
 
-	return wrapCommand(cmd, func(ev command.Env) error {
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
 		return command.Download(context.Background(), ev, spec, tag, update)
 	})
 
 }
 
-func setConfigFlag(cmd *kingpin.CmdClause, configFile *string) {
-	cmd.Flag("config", "configuration file").
-		Default(filepath.Join(xdg.ConfigHome(), "gordon", "config.yaml")).
-		Envar("GORDON_CONFIG").
-		StringVar(configFile)
+func get(app *kingpin.Application) (string, func() error) {
+	var (
+		spec gordon.VersionSpec
+	)
+	cmd := app.Command("get", "Download from GitHub Release")
+	cmd.Arg("release", "Target release (<owner>/<name>[@<tag>])").Required().SetValue(&spec)
+
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Get(context.Background(), ev, spec)
+	})
 }
 
-var plainLabels = colog.LevelMap{
-	colog.LTrace:   []byte("[ trace ] "),
-	colog.LDebug:   []byte("⚙ "),
-	colog.LInfo:    []byte("ⓘ "),
-	colog.LWarning: []byte("⚠ "),
-	colog.LError:   []byte("☢ "),
-	colog.LAlert:   []byte("☠ "),
+func install(app *kingpin.Application) (string, func() error) {
+	var (
+		spec gordon.VersionSpec
+	)
+	cmd := app.Command("install", "Install from GitHub Release")
+	cmd.Arg("release", "Target release (<owner>/<name>[@<tag>])").Required().SetValue(&spec)
+
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Install(context.Background(), ev, spec)
+	})
 }
 
-var colorLabels = colog.LevelMap{
-	colog.LTrace:   []byte("[ trace ] "),
-	colog.LDebug:   []byte("\x1b[0;36m\u2699 \x1b[0m"),
-	colog.LInfo:    []byte("\x1b[0;32m\u24d8 \x1b[0m"),
-	colog.LWarning: []byte("\x1b[0;33m\u26a0 \x1b[0m"),
-	colog.LError:   []byte("\x1b[0;31m\u2622 \x1b[0m"),
-	colog.LAlert:   []byte("\x1b[0;37;41m\u2620 \x1b[0m"),
+func uninstall(app *kingpin.Application) (string, func() error) {
+	var (
+		spec gordon.AppSpec
+	)
+	cmd := app.Command("uninstall", "Uninstall app")
+	cmd.Arg("app", "Target app (<owner>/<name>)").Required().SetValue(&spec)
+
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Uninstall(context.Background(), ev, spec)
+	})
 }
 
-func openYAML(filename string) (io.Reader, func() error, error) {
-	var reader io.Reader
-	var teardown func() error
-	file, err := os.Open(filename)
-	switch {
-	case err == nil:
-		teardown = file.Close
-		reader = file
-	case os.IsNotExist(err):
-		reader = env.EmptyYAMLReader
-		teardown = func() error { return nil }
-	default:
-		return nil, nil, err
-	}
-	return reader, teardown, nil
+func dump(app *kingpin.Application) (string, func() error) {
+	var (
+		bundleFile string
+	)
+	cmd := app.Command("dump", "Dump installed versions")
+	cmd.Arg("bundle-file", "Dumped version files").Default("-").StringVar(&bundleFile)
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Dump(ev, bundleFile)
+	})
 }
 
-func wrapCommand(cmd *kingpin.CmdClause, f func(command.Env) error) (string, func() error) {
-	var configFile string
-	setConfigFlag(cmd, &configFile)
-	return cmd.FullCommand(), func() (retErr error) {
-		reader, teardown, err := openYAML(configFile)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			if err := teardown(); err != nil && retErr == nil {
-				retErr = err
-				return
-			}
-		}()
-
-		access, err := env.GetAccess(reader, env.EnvarPrefix)
-		if err != nil {
-			return err
-		}
-
-		return f(&access)
-	}
+func restore(app *kingpin.Application) (string, func() error) {
+	var (
+		bundleFile string
+	)
+	cmd := app.Command("restore", "Restore dumped versions")
+	cmd.Arg("bundle-file", "Dumped version files").Default("-").StringVar(&bundleFile)
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Restore(context.Background(), ev, bundleFile)
+	})
 }
 
-func wrapConfigurableCommand(cmd *kingpin.CmdClause, f func(command.Env, *env.Config) error) (string, func() error) {
-	var configFile string
-	setConfigFlag(cmd, &configFile)
-	return cmd.FullCommand(), func() (retErr error) {
-		reader, teardown, err := openYAML(configFile)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			if err := teardown(); err != nil && retErr == nil {
-				retErr = err
-				return
-			}
-		}()
-
-		config, access, err := env.GetAppenv(reader, env.EnvarPrefix)
-		if err != nil {
-			return err
-		}
-
-		if err = f(&access, &config); err != nil {
-			return err
-		}
-
-		if err := os.MkdirAll(filepath.Dir(configFile), 0744); err != nil {
-			return err
-		}
-		file, err := os.OpenFile(configFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		return config.Save(file)
-	}
+func cleanup(app *kingpin.Application) (string, func() error) {
+	cmd := app.Command("cleanup", "Clean cached versions")
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Cleanup(ev)
+	})
 }
