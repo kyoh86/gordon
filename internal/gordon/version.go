@@ -28,6 +28,18 @@ func (v Version) Semver() semver.Version {
 	return v.semver
 }
 
+func (v Version) Spec() VersionSpec {
+	return VersionSpec{
+		AppSpec:AppSpec{
+			owner: v.owner,
+			name:  v.name,
+		},
+		raw    : v.String(),
+		tag    : v.tag,
+		semver : v.semver,
+	}
+}
+
 var (
 	ErrVersionNotFound = errors.New("version not found")
 )

@@ -1,6 +1,7 @@
 package gordon
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,5 +65,7 @@ func Link(ev Env, version Version) error {
 			return err
 		}
 	}
+
+	log.Printf("info: linked %q with new version %s\n", version.App, version.Tag())
 	return nil
 }

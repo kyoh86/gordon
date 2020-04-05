@@ -22,6 +22,7 @@ var (
 )
 
 func main() {
+	log.SetFlags(0)
 	log.SetOutput(os.Stderr)
 
 	app := kingpin.New("gordon", "GO Released binaries DOwNloader").
@@ -39,6 +40,7 @@ func main() {
 
 		get,
 		install,
+		update,
 		// reinstall,
 		// link,
 		// relink,
@@ -180,5 +182,12 @@ func cleanup(app *kingpin.Application) (string, func() error) {
 	cmd := app.Command("cleanup", "Clean cached versions")
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
 		return command.Cleanup(ev)
+	})
+}
+
+func update(app *kingpin.Application) (string, func() error) {
+	cmd := app.Command("update", "Update installed applications")
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Update(context.Background(), ev)
 	})
 }

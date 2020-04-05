@@ -19,6 +19,13 @@ type VersionSpec struct {
 
 func (v VersionSpec) Tag() string { return v.tag }
 
+func (v VersionSpec) WithoutTag() VersionSpec {
+	return VersionSpec{
+		AppSpec: v.AppSpec,
+		raw:     v.AppSpec.String(),
+	}
+}
+
 // Set text as VersionSpec
 func (v *VersionSpec) Set(rawRelease string) error {
 	var tag string

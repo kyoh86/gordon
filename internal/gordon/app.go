@@ -2,12 +2,24 @@ package gordon
 
 import (
 	"errors"
+	"fmt"
 	"os"
 )
 
 type App struct {
 	owner string
 	name  string
+}
+
+func (a App) Spec() AppSpec {
+	return AppSpec{
+		owner: a.owner,
+		name:  a.name,
+	}
+}
+
+func (a App) String() string {
+	return fmt.Sprintf("%s/%s", a.owner, a.name)
 }
 
 var (
