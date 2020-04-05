@@ -27,7 +27,18 @@ CAUTION: now its version is 0.x (not stable).
 ## Install
 
 ```console
-$ go get github.com/kyoh86/gordon
+$ go get github.com/kyoh86/gordon@latest
+```
+
+If you see this error:
+
+```
+go: cannot use path@version syntax in GOPATH mode
+then run
+```
+
+```console
+$ GO111MODULE=on go get github.com/kyoh86/gordon@latest
 ```
 
 ## Usage
