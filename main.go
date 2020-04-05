@@ -47,8 +47,6 @@ func main() {
 		cleanup,
 
 		dump,
-
-		dump,
 		restore,
 	} {
 		key, run := f(app)
