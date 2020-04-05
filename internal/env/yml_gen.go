@@ -15,7 +15,6 @@ type YAML struct {
 	Cache        *Cache        `yaml:"cache,omitempty"`
 	Bin          *Bin          `yaml:"bin,omitempty"`
 	Man          *Man          `yaml:"man,omitempty"`
-	Root         *Root         `yaml:"root,omitempty"`
 	Hooks        *Hooks        `yaml:"hooks,omitempty"`
 }
 

@@ -33,7 +33,7 @@ func (c *Config) Save(yamlWriter io.Writer) error {
 }
 
 func PropertyNames() []string {
-	return []string{"github.host", "github.user", "architecture", "os", "cache", "bin", "man", "root", "hooks"}
+	return []string{"github.host", "github.user", "architecture", "os", "cache", "bin", "man", "hooks"}
 }
 
 func (a *Config) Property(name string) (types.Config, error) {
@@ -52,8 +52,6 @@ func (a *Config) Property(name string) (types.Config, error) {
 		return &binConfig{parent: a}, nil
 	case "man":
 		return &manConfig{parent: a}, nil
-	case "root":
-		return &rootConfig{parent: a}, nil
 	case "hooks":
 		return &hooksConfig{parent: a}, nil
 	}
@@ -289,39 +287,6 @@ func (a *manConfig) Set(value string) error {
 
 func (a *manConfig) Unset() {
 	a.parent.yml.Man = nil
-}
-
-type rootConfig struct {
-	parent *Config
-}
-
-func (a *rootConfig) Get() (string, error) {
-	{
-		p := a.parent.yml.Root
-		if p != nil {
-			text, err := p.MarshalText()
-			return string(text), err
-		}
-	}
-	return "", nil
-}
-
-func (a *rootConfig) Set(value string) error {
-	{
-		p := a.parent.yml.Root
-		if p == nil {
-			p = new(Root)
-		}
-		if err := p.UnmarshalText([]byte(value)); err != nil {
-			return err
-		}
-		a.parent.yml.Root = p
-	}
-	return nil
-}
-
-func (a *rootConfig) Unset() {
-	a.parent.yml.Root = nil
 }
 
 type hooksConfig struct {

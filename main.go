@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/kyoh86/gogh/gogh"
 	"github.com/kyoh86/gordon/internal/command"
 	"github.com/kyoh86/gordon/internal/env"
 	"github.com/kyoh86/gordon/internal/gordon"
@@ -35,8 +34,6 @@ func main() {
 		configGet,
 		configSet,
 		configUnset,
-
-		download,
 
 		get,
 		install,
@@ -101,23 +98,6 @@ func configUnset(app *kingpin.Application) (string, func() error) {
 	return mainutil.WrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
 		return command.ConfigUnset(ev, cfg, name)
 	})
-}
-
-func download(app *kingpin.Application) (string, func() error) {
-	var (
-		spec   gogh.RepoSpec
-		update bool
-		tag    string
-	)
-	cmd := app.Command("download", "Download from GitHub Release")
-	cmd.Flag("update", "Update files").Short('u').BoolVar(&update)
-	cmd.Flag("tag", "Target tag").StringVar(&tag)
-	cmd.Arg("release", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&spec)
-
-	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
-		return command.Download(context.Background(), ev, spec, tag, update)
-	})
-
 }
 
 func get(app *kingpin.Application) (string, func() error) {

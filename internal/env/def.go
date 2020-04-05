@@ -68,14 +68,6 @@ func (*Cache) Default() interface{} {
 	return filepath.Join(xdg.CacheHome(), "gordon")
 }
 
-type Root struct {
-	extypes.Path
-}
-
-func (*Root) Default() interface{} {
-	return xdg.DownloadDir()
-}
-
 type Hooks struct {
 	extypes.Paths
 }

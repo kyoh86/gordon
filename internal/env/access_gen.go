@@ -73,14 +73,6 @@ func buildAccess(yml YAML, envarPrefix string) (access Access, err error) {
 		access.man = envar.Man.Value().(string)
 	}
 
-	access.root = new(Root).Default().(string)
-	if yml.Root != nil {
-		access.root = yml.Root.Value().(string)
-	}
-	if envar.Root != nil {
-		access.root = envar.Root.Value().(string)
-	}
-
 	access.hooks = new(Hooks).Default().([]string)
 	if yml.Hooks != nil {
 		access.hooks = yml.Hooks.Value().([]string)
@@ -100,7 +92,6 @@ type Access struct {
 	cache        string
 	bin          string
 	man          string
-	root         string
 	hooks        []string
 }
 
@@ -130,10 +121,6 @@ func (a *Access) Bin() string {
 
 func (a *Access) Man() string {
 	return a.man
-}
-
-func (a *Access) Root() string {
-	return a.root
 }
 
 func (a *Access) Hooks() []string {

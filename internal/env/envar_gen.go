@@ -15,7 +15,6 @@ type Envar struct {
 	Cache        *Cache
 	Bin          *Bin
 	Man          *Man
-	Root         *Root
 	Hooks        *Hooks
 }
 
@@ -89,16 +88,6 @@ func getEnvar(prefix string) (envar Envar, err error) {
 				return envar, err
 			}
 			envar.Man = &value
-		}
-	}
-	{
-		v := os.Getenv(prefix + "ROOT")
-		if v != "" {
-			var value Root
-			if err = value.UnmarshalText([]byte(v)); err != nil {
-				return envar, err
-			}
-			envar.Root = &value
 		}
 	}
 	{

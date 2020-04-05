@@ -24,7 +24,6 @@ func main() {
 		gen.Prop(new(env.Cache), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.Bin), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.Man), gen.YAML(), gen.Envar()),
-		gen.Prop(new(env.Root), gen.YAML(), gen.Envar()),
 		gen.Prop(new(env.Hooks), gen.YAML(), gen.Envar()),
 	); err != nil {
 		log.Fatalln(err)

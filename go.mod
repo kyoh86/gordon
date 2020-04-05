@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c
 	github.com/golang/mock v1.4.1
 	github.com/google/go-github/v29 v29.0.3
 	github.com/kyoh86/appenv v0.0.20
@@ -19,7 +18,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200403201458-baeed622b8d8 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200331124033-c3d80250170d // indirect
-	golang.org/x/tools/gopls v0.3.4 // indirect
+	golang.org/x/tools v0.0.0-20200316194252-fafb6e2e8a4a // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )
 

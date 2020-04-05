@@ -15,5 +15,4 @@ type Env interface {
 	Hooks() []string
 	Man() string
 	OS() string
-	Root() string
 }

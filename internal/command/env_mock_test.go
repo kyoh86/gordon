@@ -143,17 +143,3 @@ func (mr *MockEnvMockRecorder) OS() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OS", reflect.TypeOf((*MockEnv)(nil).OS))
 }
-
-// Root mocks base method
-func (m *MockEnv) Root() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Root")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// Root indicates an expected call of Root
-func (mr *MockEnvMockRecorder) Root() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Root", reflect.TypeOf((*MockEnv)(nil).Root))
-}
