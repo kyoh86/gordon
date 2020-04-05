@@ -109,7 +109,7 @@ func download(app *kingpin.Application) (string, func() error) {
 		update bool
 		tag    string
 	)
-	cmd := app.Command("download", "Download from GitHub Release").Alias("download")
+	cmd := app.Command("download", "Download from GitHub Release")
 	cmd.Flag("update", "Update files").Short('u').BoolVar(&update)
 	cmd.Flag("tag", "Target tag").StringVar(&tag)
 	cmd.Arg("release", "Target repository (<repository URL> | <user>/<project> | <project>)").Required().SetValue(&spec)
