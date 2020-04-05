@@ -57,7 +57,7 @@ type Man struct {
 }
 
 func (*Man) Default() interface{} {
-	return filepath.Join(os.Getenv("HOME"), ".local", "man")
+	return filepath.Join(os.Getenv("HOME"), ".local", "man", "man1")
 }
 
 type Cache struct {
