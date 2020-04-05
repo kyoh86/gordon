@@ -90,10 +90,10 @@ func findRelease(ctx context.Context, client *github.Client, spec VersionSpec) (
 
 func assetOpener(ev Env, asset github.ReleaseAsset) archive.Opener {
 	name := asset.GetName()
-	if !strings.Contains(name, ev.Architecture()) {
+	if !MatchArchitecture(name, ev.Architecture()) {
 		return nil
 	}
-	if !strings.Contains(name, ev.OS()) {
+	if !MatchOS(name, ev.OS()) {
 		return nil
 	}
 
