@@ -47,6 +47,7 @@ func main() {
 
 		dump,
 		restore,
+		setup,
 	} {
 		key, run := f(app)
 		cmds[key] = run
@@ -169,5 +170,12 @@ func update(app *kingpin.Application) (string, func() error) {
 	cmd := app.Command("update", "Update installed applications")
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
 		return command.Update(context.Background(), ev)
+	})
+}
+
+func setup(app *kingpin.Application) (string, func() error) {
+	cmd := app.Command("setup", "Setup shell to support gordon")
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Setup(context.Background(), ev)
 	})
 }
