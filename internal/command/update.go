@@ -25,7 +25,6 @@ func Update(ctx context.Context, ev Env) error {
 		version, err := gordon.FindVersion(ev, spec)
 		switch err {
 		case nil:
-			log.Printf("info: %q has a version %q\n", version.App, version.Tag())
 			if version.Tag() == release.Tag() {
 				exist = true
 			}
@@ -36,15 +35,17 @@ func Update(ctx context.Context, ev Env) error {
 		}
 
 		if !exist {
+			log.Printf("info: %q has an old version %q\n", version.App, version.Tag())
 			version, err = gordon.Download(ctx, ev, client, *release)
 			if err != nil {
 				return err
 			}
+			if err := gordon.Link(ev, *version); err != nil {
+				return err
+			}
+			log.Printf("info: updated %q with new version %s\n", version.App, version.Tag())
 		}
 
-		if err := gordon.Link(ev, *version); err != nil {
-			return err
-		}
 		return nil
 	}); err != nil {
 		return err

@@ -66,6 +66,5 @@ func Link(ev Env, version Version) error {
 		}
 	}
 
-	log.Printf("info: linked %q with new version %s\n", version.App, version.Tag())
 	return nil
 }

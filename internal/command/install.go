@@ -38,10 +38,10 @@ func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if err := gordon.Link(ev, *version); err != nil {
-		return err
+		if err := gordon.Link(ev, *version); err != nil {
+			return err
+		}
+		log.Printf("info: installed %q with version %s\n", version.App, version.Tag())
 	}
 
 	return nil

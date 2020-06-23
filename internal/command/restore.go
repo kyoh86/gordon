@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"log"
 	"os"
 
 	"github.com/kyoh86/gordon/internal/gordon"
@@ -45,6 +46,7 @@ func Restore(ctx context.Context, ev Env, bundle string) error {
 		if err := gordon.Link(ev, *version); err != nil {
 			return err
 		}
+		log.Printf("info: restored %q with version %s\n", version.App, version.Tag())
 	}
 	return nil
 }
