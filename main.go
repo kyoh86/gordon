@@ -112,7 +112,7 @@ func setup(app *kingpin.Application) (string, func() error) {
 	cmd.Flag("force", "Ask even though that the option has already set").BoolVar(&force)
 
 	return mainutil.WrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
-		return command.Setup(context.Background(), ev, force)
+		return command.Setup(context.Background(), ev, cfg, force)
 	})
 }
 
