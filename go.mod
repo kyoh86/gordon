@@ -8,8 +8,10 @@ require (
 	github.com/golang/mock v1.4.1
 	github.com/google/go-github/v29 v29.0.3
 	github.com/kyoh86/appenv v0.0.20
+	github.com/kyoh86/ask v0.0.7
 	github.com/kyoh86/gogh v1.5.4
 	github.com/kyoh86/xdg v1.2.0
+	github.com/morikuni/aec v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/saracen/walker v0.0.0-20191201085201-324a081bae7e
 	github.com/stoewer/go-strcase v1.2.0

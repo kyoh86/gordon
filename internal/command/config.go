@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kyoh86/gordon/internal/env"
+	"github.com/kyoh86/gordon/internal/gordon"
 	keyring "github.com/zalando/go-keyring"
 )
 
@@ -42,11 +43,7 @@ func ConfigGet(cfg *env.Config, optionName string) error {
 
 func ConfigSet(ev Env, cfg *env.Config, optionName, optionValue string) error {
 	if optionName == "github.token" {
-		host, user := ev.GithubHost(), ev.GithubUser()
-		if err := keyring.Set(strings.Join([]string{host, env.KeyringService}, "."), user, optionValue); err != nil {
-			return err
-		}
-		return nil
+		return gordon.SetGitHubToken(ev.GithubHost(), ev.GithubUser(), optionValue)
 	}
 
 	opt, err := cfg.Property(optionName)

@@ -47,7 +47,10 @@ func main() {
 
 		dump,
 		restore,
+
 		setup,
+		bin,
+		initialize,
 	} {
 		key, run := f(app)
 		cmds[key] = run
@@ -174,8 +177,26 @@ func update(app *kingpin.Application) (string, func() error) {
 }
 
 func setup(app *kingpin.Application) (string, func() error) {
-	cmd := app.Command("setup", "Setup shell to support gordon")
+	var (
+		force bool
+	)
+	cmd := app.Command("setup", "Setup gordon with wizards")
+	cmd.Flag("force", "Ask even though that the option has already set").BoolVar(&force)
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
-		return command.Setup(context.Background(), ev)
+		return command.Setup(context.Background(), ev, force)
+	})
+}
+
+func bin(app *kingpin.Application) (string, func() error) {
+	cmd := app.Command("bin", "Print directory to store downloaded binaries")
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Bin(context.Background(), ev)
+	})
+}
+
+func initialize(app *kingpin.Application) (string, func() error) {
+	cmd := app.Command("init", "Initialize shell to support gordon")
+	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
+		return command.Initialize(context.Background(), ev)
 	})
 }
