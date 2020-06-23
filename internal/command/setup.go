@@ -20,10 +20,7 @@ func Setup(_ context.Context, ev Env, force bool) error {
 			return fmt.Errorf("asking GitHub user ID: %w", err)
 		}
 	}
-	token, err := gordon.GetGitHubToken(ev.GithubHost(), user)
-	if err != nil {
-		return fmt.Errorf("getting token: %w", err)
-	}
+	token, _ := gordon.GetGitHubToken(ev.GithubHost(), user)
 	if token == "" || force {
 		if err := ask.Default(token).Hidden(true).Message(q("Enter your GitHub Private Access Token")).StringVar(&token).Do(); err != nil {
 			return fmt.Errorf("asking GitHub Private Access Token: %w", err)
