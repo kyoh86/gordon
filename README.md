@@ -44,7 +44,7 @@ $ GO111MODULE=on go get github.com/kyoh86/gordon@latest
 And you should setup shell in `.bashrc` or `.zshrc`.
 
 ```sh
-eval "$(command gordon setup)"
+eval "$(command gordon init)"
 ```
 
 ## Usage
