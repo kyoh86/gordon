@@ -6,7 +6,7 @@ import (
 
 	"github.com/kyoh86/ask"
 	"github.com/kyoh86/gordon/internal/env"
-	"github.com/kyoh86/gordon/internal/gordon"
+	"github.com/kyoh86/gordon/internal/hub"
 	"github.com/morikuni/aec"
 )
 
@@ -28,12 +28,12 @@ func Setup(_ context.Context, ev Env, cfg *env.Config, force bool) error {
 
 		return opt.Set(user)
 	}
-	token, _ := gordon.GetGitHubToken(ev.GithubHost(), user)
+	token, _ := hub.GetGithubToken(ev.GithubHost(), user)
 	if token == "" || force {
 		if err := ask.Default(token).Hidden(true).Message(q("Enter your GitHub Private Access Token")).StringVar(&token).Do(); err != nil {
 			return fmt.Errorf("asking GitHub Private Access Token: %w", err)
 		}
 	}
 
-	return gordon.SetGitHubToken(ev.GithubHost(), user, token)
+	return hub.SetGithubToken(ev.GithubHost(), user, token)
 }
