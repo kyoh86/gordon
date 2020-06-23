@@ -1,7 +1,6 @@
 package gordon
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
