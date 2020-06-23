@@ -34,6 +34,7 @@ func main() {
 		configGet,
 		configSet,
 		configUnset,
+		setup,
 
 		get,
 		install,
@@ -48,7 +49,6 @@ func main() {
 		dump,
 		restore,
 
-		setup,
 		bin,
 		initialize,
 	} {
@@ -101,6 +101,18 @@ func configUnset(app *kingpin.Application) (string, func() error) {
 
 	return mainutil.WrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
 		return command.ConfigUnset(ev, cfg, name)
+	})
+}
+
+func setup(app *kingpin.Application) (string, func() error) {
+	var (
+		force bool
+	)
+	cmd := app.Command("setup", "Setup gordon with wizards")
+	cmd.Flag("force", "Ask even though that the option has already set").BoolVar(&force)
+
+	return mainutil.WrapConfigurableCommand(cmd, func(ev command.Env, cfg *env.Config) error {
+		return command.Setup(context.Background(), ev, force)
 	})
 }
 
@@ -173,17 +185,6 @@ func update(app *kingpin.Application) (string, func() error) {
 	cmd := app.Command("update", "Update installed applications")
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
 		return command.Update(context.Background(), ev)
-	})
-}
-
-func setup(app *kingpin.Application) (string, func() error) {
-	var (
-		force bool
-	)
-	cmd := app.Command("setup", "Setup gordon with wizards")
-	cmd.Flag("force", "Ask even though that the option has already set").BoolVar(&force)
-	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
-		return command.Setup(context.Background(), ev, force)
 	})
 }
 

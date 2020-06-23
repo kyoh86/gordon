@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kyoh86/ask"
+	"github.com/kyoh86/gordon/internal/env"
 	"github.com/kyoh86/gordon/internal/gordon"
 	"github.com/morikuni/aec"
 )
@@ -13,12 +14,19 @@ func q(text string) string {
 	return aec.GreenF.With(aec.Bold).Apply("?") + " " + aec.Bold.Apply(text)
 }
 
-func Setup(_ context.Context, ev Env, force bool) error {
+func Setup(_ context.Context, ev Env, cfg *env.Config, force bool) error {
 	user := ev.GithubUser()
 	if user == "" || force {
 		if err := ask.Default(ev.GithubUser()).Message(q("Enter your GitHub user ID")).StringVar(&user).Do(); err != nil {
 			return fmt.Errorf("asking GitHub user ID: %w", err)
 		}
+
+		opt, err := cfg.Property("github.user")
+		if err != nil {
+			return err
+		}
+
+		return opt.Set(user)
 	}
 	token, _ := gordon.GetGitHubToken(ev.GithubHost(), user)
 	if token == "" || force {
@@ -27,5 +35,5 @@ func Setup(_ context.Context, ev Env, force bool) error {
 		}
 	}
 
-	return gordon.SetGitHubToken(ev.GithubHost(), ev.GithubUser(), token)
+	return gordon.SetGitHubToken(ev.GithubHost(), user, token)
 }
