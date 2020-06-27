@@ -4,6 +4,7 @@ Go released binaries manager
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/kyoh86/gordon)](https://goreportcard.com/report/github.com/kyoh86/gordon)
 [![Coverage Status](https://img.shields.io/codecov/c/github/kyoh86/gordon.svg)](https://codecov.io/gh/kyoh86/gordon)
+[![Release](https://github.com/kyoh86/gordon/workflows/Release/badge.svg)](https://github.com/kyoh86/gordon/releases)
 
 ## What's this?
 
