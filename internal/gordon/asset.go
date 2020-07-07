@@ -3,9 +3,9 @@ package gordon
 import "strings"
 
 var archAliases = map[string][]string{
-	"386":   []string{"i386"},
-	"amd64": []string{"x86_64", "86_64"},
-	"arm":   []string{"arm32"},
+	"386":   {"i386"},
+	"amd64": {"x86_64", "86_64"},
+	"arm":   {"arm32"},
 }
 
 func isAlnum(r rune) bool {
@@ -13,6 +13,7 @@ func isAlnum(r rune) bool {
 }
 
 func containsWord(s, substr string) bool {
+	s = strings.ToLower(s)
 	runes := []rune(s)
 	for i := 0; i < len(s); {
 		index := strings.Index(s[i:], substr)
@@ -41,8 +42,8 @@ func MatchArchitecture(s, architecture string) bool {
 }
 
 var osAliases = map[string][]string{
-	"darwin":  []string{"osx", "mac", "macintosh"},
-	"windows": []string{"win"},
+	"darwin":  {"osx", "mac", "macintosh"},
+	"windows": {"win"},
 }
 
 func MatchOS(s, os string) bool {
