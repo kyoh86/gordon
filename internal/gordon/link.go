@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-const executable = 0001
-
 func Link(ev Env, version Version) error {
 	// unlink old links
 	if err := Unlink(ev, version.App); err != nil {
@@ -27,7 +25,7 @@ func Link(ev Env, version Version) error {
 			return nil
 		}
 		switch {
-		case (fi.Mode() & executable) == executable:
+		case isExecutable(fi):
 			// executable file
 			bins[path] = fi.Name()
 		case strings.HasSuffix(path, ".1"):
