@@ -11,10 +11,7 @@ type App struct {
 }
 
 func (a App) Spec() AppSpec {
-	return AppSpec{
-		owner: a.owner,
-		name:  a.name,
-	}
+	return AppSpec(a)
 }
 
 func (a App) String() string {
