@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -181,10 +182,34 @@ func cleanup(app *kingpin.Application) (string, func() error) {
 	})
 }
 
+func setAct(f *bool) kingpin.Action {
+	return func(*kingpin.ParseContext) error {
+		*f = true
+		return nil
+	}
+}
+
 func update(app *kingpin.Application) (string, func() error) {
+	var (
+		spec    gordon.AppSpec
+		specSet bool
+		all     bool
+		allSet  bool
+	)
 	cmd := app.Command("update", "Update installed applications")
+	cmd.Flag("all", "Update all apps").Action(setAct(&allSet)).BoolVar(&all)
+	cmd.Arg("app", "Target app (<owner>/<name>)").Action(setAct(&specSet)).SetValue(&spec)
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
-		return command.Update(context.Background(), ev)
+		if allSet {
+			if specSet {
+				return errors.New("both of --all and target are set")
+			}
+			return command.UpdateAll(context.Background(), ev)
+		}
+		if specSet {
+			return command.Update(context.Background(), ev, spec)
+		}
+		return errors.New("--all or target app should be set")
 	})
 }
 

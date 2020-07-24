@@ -23,7 +23,6 @@ func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 	version, err := gordon.FindVersion(ev, spec)
 	switch err {
 	case nil:
-		log.Printf("info: %q has a version %q\n", version.App, version.Tag())
 		if version.Tag() == release.Tag() {
 			exist = true
 		}
@@ -33,7 +32,9 @@ func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 		return err
 	}
 
-	if !exist {
+	if exist {
+		log.Printf("info: %q has already installed with version %q\n", version.App, version.Tag())
+	} else {
 		version, err = gordon.Download(ctx, ev, client, *release)
 		if err != nil {
 			return err

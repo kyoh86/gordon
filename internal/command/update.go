@@ -4,51 +4,67 @@ import (
 	"context"
 	"log"
 
+	"github.com/google/go-github/v29/github"
 	"github.com/kyoh86/gordon/internal/gordon"
 	"github.com/kyoh86/gordon/internal/hub"
 )
 
-func Update(ctx context.Context, ev Env) error {
+func UpdateAll(ctx context.Context, ev Env) error {
 	client, err := hub.NewClient(ctx, ev)
 	if err != nil {
 		return err
 	}
 
 	if err := gordon.WalkInstalledVersions(ev, func(ver gordon.Version) error {
-		spec := ver.Spec().WithoutTag()
-		release, err := gordon.FindRelease(ctx, ev, client, spec)
-		if err != nil {
-			return err
-		}
-
-		exist := false
-		version, err := gordon.FindVersion(ev, spec)
-		switch err {
-		case nil:
-			if version.Tag() == release.Tag() {
-				exist = true
-			}
-		case gordon.ErrVersionNotFound:
-			// noop
-		default:
-			return err
-		}
-
-		if !exist {
-			log.Printf("info: %q has an old version %q\n", version.App, version.Tag())
-			version, err = gordon.Download(ctx, ev, client, *release)
-			if err != nil {
-				return err
-			}
-			if err := gordon.Link(ev, *version); err != nil {
-				return err
-			}
-			log.Printf("info: updated %q with new version %s\n", version.App, version.Tag())
-		}
-
-		return nil
+		return update(ctx, client, ev, ver.Spec())
 	}); err != nil {
 		return err
 	}
+	return nil
+}
+
+func Update(ctx context.Context, ev Env, spec gordon.AppSpec) error {
+	client, err := hub.NewClient(ctx, ev)
+	if err != nil {
+		return err
+	}
+
+	return update(ctx, client, ev, gordon.VersionSpec{
+		AppSpec: spec,
+	})
+}
+
+func update(ctx context.Context, client *github.Client, ev Env, spec gordon.VersionSpec) error {
+	spec = spec.WithoutTag()
+	release, err := gordon.FindRelease(ctx, ev, client, spec)
+	if err != nil {
+		return err
+	}
+
+	exist := false
+	version, err := gordon.FindVersion(ev, spec)
+	switch err {
+	case nil:
+		if version.Tag() == release.Tag() {
+			exist = true
+		}
+	case gordon.ErrVersionNotFound:
+		// noop
+	default:
+		return err
+	}
+
+	if !exist {
+		log.Printf("info: %q has an old version %q\n", version.App, version.Tag())
+		version, err = gordon.Download(ctx, ev, client, *release)
+		if err != nil {
+			return err
+		}
+		if err := gordon.Link(ev, *version); err != nil {
+			return err
+		}
+		log.Printf("info: updated %q with new version %s\n", version.App, version.Tag())
+	}
+
 	return nil
 }
