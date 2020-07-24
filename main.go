@@ -156,7 +156,7 @@ func dump(app *kingpin.Application) (string, func() error) {
 	var (
 		bundleFile string
 	)
-	cmd := app.Command("dump", "Dump installed versions")
+	cmd := app.Command("dump", "Dump installed versions").Alias("list")
 	cmd.Arg("bundle-file", "Dumped version files").Default("-").StringVar(&bundleFile)
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
 		return command.Dump(ev, bundleFile)

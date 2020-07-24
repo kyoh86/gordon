@@ -9,16 +9,15 @@ require (
 	github.com/google/go-github/v29 v29.0.3
 	github.com/kyoh86/appenv v0.0.20
 	github.com/kyoh86/ask v0.0.7
-	github.com/kyoh86/gogh v1.6.2
+	github.com/kyoh86/gogh v1.7.0
 	github.com/kyoh86/xdg v1.2.0
 	github.com/morikuni/aec v1.0.0
 	github.com/saracen/walker v0.1.1
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.5.1
 	github.com/zalando/go-keyring v0.1.0
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 )
 

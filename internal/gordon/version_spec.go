@@ -12,7 +12,6 @@ import (
 // If "@tag" is ommited, it means latest tag.
 type VersionSpec struct {
 	AppSpec
-	raw    string
 	tag    string
 	semver semver.Version
 }
@@ -22,7 +21,6 @@ func (v VersionSpec) Tag() string { return v.tag }
 func (v VersionSpec) WithoutTag() VersionSpec {
 	return VersionSpec{
 		AppSpec: v.AppSpec,
-		raw:     v.AppSpec.String(),
 	}
 }
 
@@ -47,12 +45,14 @@ func (v *VersionSpec) Set(rawRelease string) error {
 		v.tag = tag
 		v.semver = sv
 	}
-	v.raw = rawRelease
 	return nil
 }
 
 func (v VersionSpec) String() string {
-	return v.raw
+	if v.tag == "" {
+		return v.AppSpec.String()
+	}
+	return v.AppSpec.String() + "@" + v.tag
 }
 
 var _ flag.Value = (*VersionSpec)(nil)

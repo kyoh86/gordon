@@ -105,7 +105,7 @@ func assetOpener(ev Env, asset github.ReleaseAsset) archive.Opener {
 	case strings.HasSuffix(name, ".tar"):
 		return archive.OpenTar
 	case strings.HasSuffix(name, ".zip"):
-		return archive.ZipOpener(int64(asset.GetSize()))
+		return archive.OpenZip
 	}
 	return nil
 }

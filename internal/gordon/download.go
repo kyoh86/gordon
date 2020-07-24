@@ -2,6 +2,7 @@ package gordon
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -20,7 +21,7 @@ func Download(ctx context.Context, ev Env, client *github.Client, release Releas
 	}
 	unarchiver, err := openAsset(ctx, client, release)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open asset %s: %w", release.Spec().String(), err)
 	}
 	if err := extractAsset(path, unarchiver); err != nil {
 		return nil, err
@@ -47,14 +48,14 @@ func extractAsset(path string, unarchiver archive.Unarchiver) error {
 		return err
 	}
 
-	return unarchiver.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
+	if err := unarchiver.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
 		entryReader, err := entry()
 		if err != nil {
-			return err
+			return fmt.Errorf("open an entry: %w", err)
 		}
 		defer func() {
 			if err := entryReader.Close(); err != nil && retErr == nil {
-				retErr = err
+				retErr = fmt.Errorf("close an entry: %w", err)
 			}
 		}()
 
@@ -65,17 +66,20 @@ func extractAsset(path string, unarchiver archive.Unarchiver) error {
 			info.Mode(),
 		)
 		if err != nil {
-			return err
+			return fmt.Errorf("open a destination: %w", err)
 		}
 		defer func() {
 			if err := file.Close(); err != nil && retErr == nil {
-				retErr = err
+				retErr = fmt.Errorf("close a destination: %w", err)
 			}
 		}()
 
 		if _, err := io.Copy(file, entryReader); err != nil {
-			return err
+			return fmt.Errorf("copy from an entry: %w", err)
 		}
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("unarchive %s: %w", path, err)
+	}
+	return nil
 }

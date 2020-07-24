@@ -3,7 +3,6 @@ package gordon
 import (
 	"errors"
 	"fmt"
-	"os"
 )
 
 type App struct {
@@ -27,14 +26,11 @@ var (
 )
 
 func FindApp(ev Env, spec AppSpec) (*App, error) {
-	fi, err := os.Stat(assetSubPath(ev, spec.owner, spec.name))
+	ok, err := isDir(assetSubPath(ev, spec.owner, spec.name))
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, ErrAppNotFound
-		}
 		return nil, err
 	}
-	if !fi.IsDir() {
+	if !ok {
 		return nil, ErrAppNotFound
 	}
 	return &App{

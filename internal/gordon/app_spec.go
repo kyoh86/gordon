@@ -12,7 +12,6 @@ import (
 // AppSpec can accept "owner/name@tag" notation.
 // If "@tag" is ommited, it means latest tag.
 type AppSpec struct {
-	raw   string
 	owner string
 	name  string
 }
@@ -42,12 +41,11 @@ func (a *AppSpec) Set(rawApp string) error {
 
 	a.owner = terms[0]
 	a.name = terms[1]
-	a.raw = rawApp
 	return nil
 }
 
 func (a AppSpec) String() string {
-	return a.raw
+	return a.owner + "/" + a.name
 }
 
 var _ flag.Value = (*AppSpec)(nil)

@@ -30,13 +30,12 @@ func (v Version) Semver() semver.Version {
 
 func (v Version) Spec() VersionSpec {
 	return VersionSpec{
-		AppSpec:AppSpec{
+		AppSpec: AppSpec{
 			owner: v.owner,
 			name:  v.name,
 		},
-		raw    : v.String(),
-		tag    : v.tag,
-		semver : v.semver,
+		tag:    v.tag,
+		semver: v.semver,
 	}
 }
 
@@ -58,14 +57,11 @@ func validateVersionSpec(ev Env, owner, name, tag string) (*Version, error) {
 	}
 	ver.semver = sv
 	path := VersionPath(ev, ver)
-	fi, err := os.Stat(path)
+	ok, err := isDirWithChild(path)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, ErrVersionNotFound
-		}
 		return nil, err
 	}
-	if !fi.IsDir() {
+	if !ok {
 		return nil, ErrVersionNotFound
 	}
 	return &ver, nil
@@ -75,7 +71,11 @@ func findLatestVersion(ev Env, owner, name string) (*Version, error) {
 	var found bool
 	var newest Version
 	if err := walkIfDir(assetSubPath(ev, owner, name), func(path string, fi os.FileInfo) error {
-		if !fi.IsDir() {
+		ok, err := isDirWithChild(path)
+		if err != nil {
+			return nil
+		}
+		if !ok {
 			return nil
 		}
 
