@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"compress/bzip2"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -77,26 +78,20 @@ func (u *ZipUnarchiver) Walk(walker Walker) error {
 			return err
 		}
 	}
-	return io.EOF
+	return nil
 }
 
-func ZipOpener(size int64) Opener {
-	return func(reader io.Reader) (Unarchiver, error) {
-		return OpenZip(reader, size)
-	}
-}
-
-func OpenZip(reader io.Reader, size int64) (Unarchiver, error) {
-	buf := bytes.NewBuffer(make([]byte, size))
-	size, err := io.Copy(buf, reader)
+func OpenZip(reader io.Reader) (Unarchiver, error) {
+	var buf bytes.Buffer
+	size, err := io.Copy(&buf, reader)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("copy to buffer: %w", err)
 	}
 
 	bufReader := bytes.NewReader(buf.Bytes())
 	z, err := zip.NewReader(bufReader, size)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open zip: %w", err)
 	}
 	return &ZipUnarchiver{
 		reader: z,

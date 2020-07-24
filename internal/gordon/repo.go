@@ -10,8 +10,5 @@ func RepoApp(repo Repo) App {
 }
 
 func (r Repo) Spec() AppSpec {
-	return AppSpec{
-		owner: r.owner,
-		name:  r.name,
-	}
+	return AppSpec(r)
 }
