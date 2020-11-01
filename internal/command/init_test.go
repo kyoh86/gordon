@@ -1,14 +1,15 @@
 package command_test
 
 import (
-	"io/ioutil"
-	"log"
 	"os"
 	"testing"
+
+	testtarget "github.com/kyoh86/gordon/internal/command"
+	"github.com/kyoh86/gordon/internal/hub"
 )
 
 func TestMain(m *testing.M) {
-	log.SetOutput(ioutil.Discard)
+	testtarget.TokenManager = hub.NewMemory
 	code := m.Run()
 	os.Exit(code)
 }

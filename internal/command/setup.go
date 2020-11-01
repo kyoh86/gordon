@@ -7,7 +7,6 @@ import (
 	"github.com/kyoh86/ask"
 	"github.com/kyoh86/gordon/internal/cli"
 	"github.com/kyoh86/gordon/internal/env"
-	"github.com/kyoh86/gordon/internal/hub"
 )
 
 func Setup(_ context.Context, ev Env, cfg *env.Config, force bool) error {
@@ -19,7 +18,11 @@ func Setup(_ context.Context, ev Env, cfg *env.Config, force bool) error {
 
 		return cfg.GithubUser().Set(user)
 	}
-	token, _ := hub.GetGithubToken(ev.GithubHost(), user)
+	tm, err := TokenManager(ev.GithubHost())
+	if err != nil {
+		return err
+	}
+	token, _ := tm.GetGithubToken(user)
 	if token == "" || force {
 		newToken, err := cli.AskPassword("Enter your GitHub Private Access Token")
 		if err != nil {
@@ -28,5 +31,5 @@ func Setup(_ context.Context, ev Env, cfg *env.Config, force bool) error {
 		token = newToken
 	}
 
-	return hub.SetGithubToken(ev.GithubHost(), user, token)
+	return tm.SetGithubToken(user, token)
 }

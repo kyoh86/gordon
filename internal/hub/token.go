@@ -11,14 +11,52 @@ import (
 	"github.com/kyoh86/xdg"
 )
 
+type TokenManager interface {
+	SetGithubToken(user, token string) error
+	GetGithubToken(user string) (string, error)
+	DeleteGithubToken(user string) error
+}
+
+const keySeparator = "\U000F0000" // Unicode Private Use Area
+
+type MemoryTokenManager struct {
+	Host string
+	m    map[string]string
+}
+
+func NewMemory(host string) (TokenManager, error) {
+	return &MemoryTokenManager{Host: host, m: map[string]string{}}, nil
+}
+
+func (m *MemoryTokenManager) SetGithubToken(user, token string) error {
+	m.m[m.Host+keySeparator+user] = token
+	return nil
+}
+
+func (m *MemoryTokenManager) GetGithubToken(user string) (string, error) {
+	return m.m[m.Host+keySeparator+user], nil
+}
+
+func (m *MemoryTokenManager) DeleteGithubToken(user string) error {
+	delete(m.m, m.Host+keySeparator+user)
+	return nil
+}
+
+type Keyring struct {
+	ring keyring.Keyring
+}
+
 const (
 	KeyringService = "gordon.kyoh86.dev"
 	KeyringFileDir = "gordon"
 )
 
-func openKeyring(host string) (keyring.Keyring, error) {
+func NewKeyring(host string) (TokenManager, error) {
+	if host == "" {
+		return nil, errors.New("host is empty")
+	}
 	serviceName := strings.Join([]string{host, KeyringService}, ".")
-	return keyring.Open(keyring.Config{
+	ring, err := keyring.Open(keyring.Config{
 		ServiceName: serviceName,
 
 		FileDir:          filepath.Join(xdg.CacheHome(), KeyringFileDir, "keyring", host),
@@ -29,26 +67,23 @@ func openKeyring(host string) (keyring.Keyring, error) {
 
 		PassDir: filepath.Join(xdg.CacheHome(), KeyringFileDir, "pass", host),
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &Keyring{ring: ring}, nil
 }
 
-func SetGithubToken(host, user, token string) error {
-	if host == "" {
-		return errors.New("host is empty")
-	}
+func (m *Keyring) SetGithubToken(user, token string) error {
 	if user == "" {
 		return errors.New("user is empty")
 	}
-	ring, err := openKeyring(host)
-	if err != nil {
-		return err
-	}
-	return ring.Set(keyring.Item{
+	return m.ring.Set(keyring.Item{
 		Key:  user,
 		Data: []byte(token),
 	})
 }
 
-func GetGithubToken(host, user string) (string, error) {
+func (m *Keyring) GetGithubToken(user string) (string, error) {
 	if user == "" {
 		return "", errors.New("user is empty")
 	}
@@ -56,11 +91,7 @@ func GetGithubToken(host, user string) (string, error) {
 	if envar != "" {
 		return envar, nil
 	}
-	ring, err := openKeyring(host)
-	if err != nil {
-		return "", err
-	}
-	item, err := ring.Get(user)
+	item, err := m.ring.Get(user)
 	if err != nil {
 		if errors.Is(err, keyring.ErrKeyNotFound) {
 			return "", nil
@@ -70,10 +101,6 @@ func GetGithubToken(host, user string) (string, error) {
 	return string(item.Data), nil
 }
 
-func DeleteGithubToken(host, user string) error {
-	ring, err := openKeyring(host)
-	if err != nil {
-		return err
-	}
-	return ring.Remove(user)
+func (m *Keyring) DeleteGithubToken(user string) error {
+	return m.ring.Remove(user)
 }

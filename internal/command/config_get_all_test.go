@@ -5,16 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kyoh86/gogh/command"
-	"github.com/kyoh86/gogh/env"
+	"github.com/kyoh86/gordon/internal/command"
+	"github.com/kyoh86/gordon/internal/env"
 	"github.com/stretchr/testify/assert"
 )
 
 func ExampleConfigGetAll() {
 	yml := strings.NewReader(`
-roots:
-  - /root1
-  - /root2
 hooks:
   - /hook1
   - /hook2
@@ -24,28 +21,29 @@ githubUser: userx1`)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err := command.ConfigGetAll(&config); err != nil {
+	if err := command.ConfigGetAll(nil, &config); err != nil {
 		log.Fatalln(err)
 	}
 
 	// Unordered output:
-	// roots: /root1:/root2
 	// hooks: /hook1:/hook2
 	// github.host: hostx1
 	// github.user: userx1
 	// github.token: *****
+	// architecture:
+	// os:
+	// cache:
+	// bin:
+	// man:
 }
 
 func TestConfigGetAll(t *testing.T) {
 	yml := strings.NewReader(`
-roots:
-  - /root1
-  - /root2
 hooks:
   - /hook1
   - /hook2
 githubHost: hostx1`)
 	config, err := env.GetConfig(yml)
 	assert.NoError(t, err)
-	assert.NoError(t, command.ConfigGetAll(&config))
+	assert.NoError(t, command.ConfigGetAll(nil, &config))
 }

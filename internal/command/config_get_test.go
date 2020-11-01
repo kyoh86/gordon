@@ -5,18 +5,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kyoh86/gogh/command"
-	"github.com/kyoh86/gogh/env"
+	"github.com/kyoh86/gordon/internal/command"
+	"github.com/kyoh86/gordon/internal/env"
 	"github.com/stretchr/testify/assert"
 )
 
 func ExampleConfigGet() {
-	yml := strings.NewReader(`{"roots": ["/foo", "/bar"]}`)
+	yml := strings.NewReader(`{"hooks": ["/foo", "/bar"]}`)
 	config, err := env.GetConfig(yml)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err := command.ConfigGet(&config, "roots"); err != nil {
+	if err := command.ConfigGet(&config, "hooks"); err != nil {
 		log.Fatalln(err)
 	}
 

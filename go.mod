@@ -17,7 +17,6 @@ require (
 	github.com/saracen/walker v0.1.1
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.5.1
-	github.com/zalando/go-keyring v0.1.0
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 )
 

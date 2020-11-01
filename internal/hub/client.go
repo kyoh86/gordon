@@ -40,7 +40,11 @@ func oauth2Client(authContext context.Context, ev gordon.Env) (*http.Client, err
 	if ev.GithubUser() == "" {
 		return http.DefaultClient, nil
 	}
-	token, err := GetGithubToken(ev.GithubHost(), ev.GithubUser())
+	tm, err := NewKeyring(ev.GithubHost())
+	if err != nil {
+		return nil, err
+	}
+	token, err := tm.GetGithubToken(ev.GithubUser())
 	if err != nil {
 		return nil, err
 	}

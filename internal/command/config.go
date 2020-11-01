@@ -7,7 +7,9 @@ import (
 	"github.com/kyoh86/gordon/internal/hub"
 )
 
-func ConfigGetAll(ev Env, cfg *env.Config) error {
+var TokenManager = hub.NewKeyring
+
+func ConfigGetAll(_ Env, cfg *env.Config) error {
 	for _, name := range env.OptionNames() {
 		opt, _ := cfg.Option(name) // ignore error: config.OptionNames covers all accessor
 		value, err := opt.Get()
@@ -41,7 +43,11 @@ func ConfigGet(cfg *env.Config, optionName string) error {
 
 func ConfigSet(ev Env, cfg *env.Config, optionName, optionValue string) error {
 	if optionName == "github.token" {
-		return hub.SetGithubToken(ev.GithubHost(), ev.GithubUser(), optionValue)
+		tm, err := TokenManager(ev.GithubHost())
+		if err != nil {
+			return err
+		}
+		return tm.SetGithubToken(ev.GithubUser(), optionValue)
 	}
 
 	opt, err := cfg.Option(optionName)
@@ -55,7 +61,11 @@ func ConfigUnset(ev Env, cfg *env.Config, optionName string) error {
 	if optionName == "github.token" {
 		host, user := ev.GithubHost(), ev.GithubUser()
 
-		if err := hub.DeleteGithubToken(host, user); err != nil {
+		tm, err := TokenManager(host)
+		if err != nil {
+			return err
+		}
+		if err := tm.DeleteGithubToken(user); err != nil {
 			return err
 		}
 		return nil
