@@ -10,8 +10,8 @@ import (
 )
 
 func ConfigGetAll(_ Env, cfg *env.Config) error {
-	for _, name := range env.PropertyNames() {
-		opt, _ := cfg.Property(name) // ignore error: config.OptionNames covers all accessor
+	for _, name := range env.OptionNames() {
+		opt, _ := cfg.Option(name) // ignore error: config.OptionNames covers all accessor
 		value, err := opt.Get()
 		if err != nil {
 			return err
@@ -29,7 +29,7 @@ func ConfigGetAll(_ Env, cfg *env.Config) error {
 }
 
 func ConfigGet(cfg *env.Config, optionName string) error {
-	opt, err := cfg.Property(optionName)
+	opt, err := cfg.Option(optionName)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func ConfigSet(ev Env, cfg *env.Config, optionName, optionValue string) error {
 		return hub.SetGithubToken(ev.GithubHost(), ev.GithubUser(), optionValue)
 	}
 
-	opt, err := cfg.Property(optionName)
+	opt, err := cfg.Option(optionName)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func ConfigUnset(ev Env, cfg *env.Config, optionName string) error {
 		return nil
 	}
 
-	opt, err := cfg.Property(optionName)
+	opt, err := cfg.Option(optionName)
 	if err != nil {
 		return err
 	}

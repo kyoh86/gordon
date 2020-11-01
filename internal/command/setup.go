@@ -21,12 +21,7 @@ func Setup(_ context.Context, ev Env, cfg *env.Config, force bool) error {
 			return fmt.Errorf("asking GitHub user ID: %w", err)
 		}
 
-		opt, err := cfg.Property("github.user")
-		if err != nil {
-			return err
-		}
-
-		return opt.Set(user)
+		return cfg.GithubUser().Set(user)
 	}
 	token, _ := hub.GetGithubToken(ev.GithubHost(), user)
 	if token == "" || force {

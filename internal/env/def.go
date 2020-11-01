@@ -16,7 +16,7 @@ const (
 )
 
 type GithubHost struct {
-	types.StringPropertyBase
+	types.StringValue
 }
 
 const (
@@ -29,16 +29,16 @@ func (*GithubHost) Default() interface{} {
 }
 
 type GithubUser struct {
-	types.StringPropertyBase
+	types.StringValue
 }
 
-type Architecture struct{ types.StringPropertyBase }
+type Architecture struct{ types.StringValue }
 
 func (*Architecture) Default() interface{} {
 	return runtime.GOARCH
 }
 
-type OS struct{ types.StringPropertyBase }
+type OS struct{ types.StringValue }
 
 func (*OS) Default() interface{} {
 	return runtime.GOOS
