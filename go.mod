@@ -3,6 +3,7 @@ module github.com/kyoh86/gordon
 go 1.13
 
 require (
+	github.com/99designs/keyring v1.1.6
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/goccy/go-yaml v1.8.3

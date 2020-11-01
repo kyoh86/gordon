@@ -2,14 +2,12 @@ package command
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/kyoh86/gordon/internal/env"
 	"github.com/kyoh86/gordon/internal/hub"
-	keyring "github.com/zalando/go-keyring"
 )
 
-func ConfigGetAll(_ Env, cfg *env.Config) error {
+func ConfigGetAll(ev Env, cfg *env.Config) error {
 	for _, name := range env.OptionNames() {
 		opt, _ := cfg.Option(name) // ignore error: config.OptionNames covers all accessor
 		value, err := opt.Get()
@@ -57,7 +55,7 @@ func ConfigUnset(ev Env, cfg *env.Config, optionName string) error {
 	if optionName == "github.token" {
 		host, user := ev.GithubHost(), ev.GithubUser()
 
-		if err := keyring.Delete(strings.Join([]string{host, env.KeyringService}, "."), user); err != nil {
+		if err := hub.DeleteGithubToken(host, user); err != nil {
 			return err
 		}
 		return nil

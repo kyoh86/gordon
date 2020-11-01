@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	KeyringService = "gordon.kyoh86.dev"
-	EnvarPrefix    = "GORDON_"
+	EnvarPrefix = "GORDON_"
 )
 
 type GithubHost struct {
