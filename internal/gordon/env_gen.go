@@ -2,8 +2,7 @@
 
 package gordon
 
-import (
-)
+import ()
 
 // Env is an interface generated for "github.com/kyoh86/gordon/internal/env.Access".
 type Env interface {
