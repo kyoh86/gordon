@@ -49,6 +49,9 @@ func extractAsset(path string, unarchiver archive.Unarchiver) error {
 	}
 
 	if err := unarchiver.Walk(func(info os.FileInfo, entry archive.Entry) (retErr error) {
+		if info.IsDir() {
+			return nil
+		}
 		entryReader, err := entry()
 		if err != nil {
 			return fmt.Errorf("open an entry: %w", err)
