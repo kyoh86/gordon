@@ -2,12 +2,27 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/kyoh86/gordon/internal/env"
 	"github.com/kyoh86/gordon/internal/hub"
 )
 
 var TokenManager = hub.NewKeyring
+
+func Environment(ev Env) error {
+	fmt.Printf("github.host: %s\n", ev.GithubHost())
+	fmt.Printf("github.user: %s\n", ev.GithubUser())
+	fmt.Printf("architecture: %s\n", ev.Architecture())
+	fmt.Printf("os: %s\n", ev.OS())
+	fmt.Printf("cache: %s\n", ev.Cache())
+	fmt.Printf("bin: %s\n", ev.Bin())
+	fmt.Printf("man: %s\n", ev.Man())
+	fmt.Printf("hooks: %s\n", strings.Join(ev.Hooks(), string(filepath.ListSeparator)))
+	fmt.Println("github.token: *****")
+	return nil
+}
 
 func ConfigGetAll(_ Env, cfg *env.Config) error {
 	for _, name := range env.OptionNames() {

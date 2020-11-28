@@ -3,8 +3,23 @@ package gordon
 import "strings"
 
 var archAliases = map[string][]string{
-	"386":   {"i386"},
-	"amd64": {"x86_64", "86_64"},
+	/*
+		architectures:
+		386
+		amd64
+		arm
+		arm64
+		mips
+		mips64
+		mips64le
+		mipsle
+		ppc64
+		ppc64le
+		s390x
+		wasm
+	*/
+	"386":   {"i386", "32bit"},
+	"amd64": {"x86_64", "86_64", "64bit"},
 	"arm":   {"arm32"},
 }
 
@@ -42,7 +57,23 @@ func MatchArchitecture(s, architecture string) bool {
 }
 
 var osAliases = map[string][]string{
-	"darwin":  {"osx", "mac", "macintosh"},
+	/*
+		aix
+		android
+		darwin
+		dragonfly
+		freebsd
+		illumos
+		js
+		linux
+		netbsd
+		openbsd
+		plan9
+		solaris
+		windows
+	*/
+
+	"darwin":  {"osx", "mac", "macos", "macintosh"},
 	"windows": {"win"},
 }
 

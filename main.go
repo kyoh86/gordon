@@ -31,6 +31,7 @@ func main() {
 
 	cmds := map[string]func() error{}
 	for _, f := range []func(*kingpin.Application) (string, func() error){
+		envGetAll,
 		configGetAll,
 		configGet,
 		configSet,
@@ -61,9 +62,13 @@ func main() {
 	}
 }
 
+func envGetAll(app *kingpin.Application) (string, func() error) {
+	cmd := app.Command("env", "get all environments").Alias("envs").Alias("envar").Alias("envars").Alias("environment").Alias("environments")
+	return mainutil.WrapCommand(cmd, command.Environment)
+}
+
 func configGetAll(app *kingpin.Application) (string, func() error) {
 	cmd := app.GetCommand("config").Command("get-all", "get all options").Alias("list").Alias("ls")
-
 	return mainutil.WrapConfigurableCommand(cmd, command.ConfigGetAll)
 }
 

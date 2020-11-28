@@ -102,3 +102,9 @@ func TestContainsWord(t *testing.T) {
 		})
 	}
 }
+
+func TestMatchArchitecture(t *testing.T) {
+	if !MatchArchitecture("foo_0.3.4_mac_64bit", "amd64") {
+		t.Errorf(`expect "amd64" matches "foo_0.3.4_mac_64bit", but not`)
+	}
+}
