@@ -10,6 +10,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/ulikunitz/xz"
 )
 
 type Opener func(io.Reader) (Unarchiver, error)
@@ -47,6 +49,16 @@ func (u *TarUnarchiver) Walk(walker Walker) error {
 func OpenTar(reader io.Reader) (Unarchiver, error) {
 	return &TarUnarchiver{
 		reader: tar.NewReader(reader),
+	}, nil
+}
+
+func OpenTarXz(reader io.Reader) (Unarchiver, error) {
+	z, err := xz.NewReader(reader)
+	if err != nil {
+		return nil, err
+	}
+	return &TarUnarchiver{
+		reader: tar.NewReader(z),
 	}, nil
 }
 

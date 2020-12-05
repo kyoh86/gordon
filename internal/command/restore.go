@@ -3,6 +3,7 @@ package command
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -58,7 +59,7 @@ func restoreOne(ctx context.Context, ev Env, client *github.Client, specStr stri
 	}
 	release, err := gordon.FindRelease(ctx, ev, client, *spec)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find release for %q-%q: %w", ev.OS(), ev.Architecture(), err)
 	}
 
 	version, err := gordon.Download(ctx, ev, client, *release)

@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/google/go-github/v29/github"
@@ -38,7 +39,7 @@ func update(ctx context.Context, client *github.Client, ev Env, spec gordon.Vers
 	spec = spec.WithoutTag()
 	release, err := gordon.FindRelease(ctx, ev, client, spec)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find release for %q-%q: %w", ev.OS(), ev.Architecture(), err)
 	}
 
 	exist := false
