@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/kyoh86/gordon/internal/gordon"
@@ -16,7 +17,7 @@ func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 
 	release, err := gordon.FindRelease(ctx, ev, client, spec)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find release for %q-%q: %w", ev.OS(), ev.Architecture(), err)
 	}
 
 	exist := false
