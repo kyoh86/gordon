@@ -98,6 +98,8 @@ func assetOpener(ev Env, asset github.ReleaseAsset) archive.Opener {
 	}
 
 	switch {
+	case strings.HasSuffix(name, ".tar.xz"):
+		return archive.OpenTarXz
 	case strings.HasSuffix(name, ".tar.gz"), strings.HasSuffix(name, ".tgz"):
 		return archive.OpenTarGzip
 	case strings.HasSuffix(name, ".tar.bz2"):
