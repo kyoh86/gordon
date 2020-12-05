@@ -20,6 +20,7 @@ require (
 	github.com/saracen/walker v0.1.1
 	github.com/stoewer/go-strcase v1.2.0
 	github.com/stretchr/testify v1.6.1
+	github.com/ulikunitz/xz v0.5.8
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
 )
