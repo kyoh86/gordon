@@ -41,6 +41,7 @@ func update(ctx context.Context, client *github.Client, ev Env, spec gordon.Vers
 	if err != nil {
 		return fmt.Errorf("failed to find release for %q-%q: %w", ev.OS(), ev.Architecture(), err)
 	}
+	log.Printf("info: found %s", release)
 
 	exist := false
 	version, err := gordon.FindVersion(ev, spec)

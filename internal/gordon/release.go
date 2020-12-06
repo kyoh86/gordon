@@ -3,7 +3,7 @@ package gordon
 import (
 	"context"
 	"errors"
-	"strings"
+	"fmt"
 
 	"github.com/google/go-github/v29/github"
 	"github.com/kyoh86/gordon/internal/archive"
@@ -15,6 +15,10 @@ type Release struct {
 
 	asset  Asset
 	opener archive.Opener
+}
+
+func (r Release) String() string {
+	return fmt.Sprintf("%s/%s", r.Spec().String(), r.asset.Name)
 }
 
 func (r Release) Spec() VersionSpec {
@@ -54,28 +58,28 @@ func FindRelease(ctx context.Context, ev Env, client *github.Client, spec Versio
 		return nil, err
 	}
 
-	for _, asset := range release.Assets {
-		if opener := assetOpener(ev, asset); opener != nil {
-			return &Release{
-				Repo: Repo{
-					owner: spec.owner,
-					name:  spec.name,
-				},
-				tag: release.GetTagName(),
-
-				asset: Asset{
-					ID:                 asset.GetID(),
-					Name:               asset.GetName(),
-					Label:              asset.GetLabel(),
-					ContentType:        asset.GetContentType(),
-					Size:               asset.GetSize(),
-					BrowserDownloadURL: asset.GetBrowserDownloadURL(),
-				},
-				opener: opener,
-			}, nil
-		}
+	asset, err := findAsset(ev, release.Assets)
+	if err != nil {
+		return nil, err
 	}
-	return nil, ErrAssetNotFound
+	opener := matchOpener(asset.GetName())
+	return &Release{
+		Repo: Repo{
+			owner: spec.owner,
+			name:  spec.name,
+		},
+		tag: release.GetTagName(),
+
+		asset: Asset{
+			ID:                 asset.GetID(),
+			Name:               asset.GetName(),
+			Label:              asset.GetLabel(),
+			ContentType:        asset.GetContentType(),
+			Size:               asset.GetSize(),
+			BrowserDownloadURL: asset.GetBrowserDownloadURL(),
+		},
+		opener: opener,
+	}, nil
 }
 
 func findRelease(ctx context.Context, client *github.Client, spec VersionSpec) (*github.RepositoryRelease, error) {
@@ -86,28 +90,4 @@ func findRelease(ctx context.Context, client *github.Client, spec VersionSpec) (
 	}
 	release, _, err := client.Repositories.GetReleaseByTag(ctx, spec.Owner(), spec.Name(), spec.Tag())
 	return release, err
-}
-
-func assetOpener(ev Env, asset github.ReleaseAsset) archive.Opener {
-	name := asset.GetName()
-	if !MatchArchitecture(name, ev.Architecture()) {
-		return nil
-	}
-	if !MatchOS(name, ev.OS()) {
-		return nil
-	}
-
-	switch {
-	case strings.HasSuffix(name, ".tar.xz"):
-		return archive.OpenTarXz
-	case strings.HasSuffix(name, ".tar.gz"), strings.HasSuffix(name, ".tgz"):
-		return archive.OpenTarGzip
-	case strings.HasSuffix(name, ".tar.bz2"):
-		return archive.OpenTarBzip2
-	case strings.HasSuffix(name, ".tar"):
-		return archive.OpenTar
-	case strings.HasSuffix(name, ".zip"):
-		return archive.OpenZip
-	}
-	return nil
 }
