@@ -19,6 +19,7 @@ func Install(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 	if err != nil {
 		return fmt.Errorf("failed to find release for %q-%q: %w", ev.OS(), ev.Architecture(), err)
 	}
+	log.Printf("info: found %s", release)
 
 	exist := false
 	version, err := gordon.FindVersion(ev, spec)

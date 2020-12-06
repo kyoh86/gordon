@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/kyoh86/gordon/internal/gordon"
 	"github.com/kyoh86/gordon/internal/hub"
@@ -18,6 +19,7 @@ func Get(ctx context.Context, ev Env, spec gordon.VersionSpec) error {
 	if err != nil {
 		return fmt.Errorf("failed to find release for %q-%q: %w", ev.OS(), ev.Architecture(), err)
 	}
+	log.Printf("info: found %s", release)
 
 	ver, err := gordon.Download(ctx, ev, client, *release)
 	if err != nil {

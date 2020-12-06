@@ -1,59 +1,122 @@
 package gordon
 
-import "strings"
+import (
+	"strings"
 
-var archAliases = map[string][]string{
-	"386":   {"i386"},
-	"amd64": {"x86_64", "86_64"},
-	"arm":   {"arm32"},
-}
+	"github.com/google/go-github/v29/github"
+	"github.com/kyoh86/gordon/internal/archive"
+)
 
-func isAlnum(r rune) bool {
-	return 'a' <= r && r <= 'z' || 'A' <= r && r <= 'Z' || '0' <= r && r <= '9'
-}
+func findAsset(ev Env, assets []github.ReleaseAsset) (asset github.ReleaseAsset, _ error) {
+	matchers := []func(s string) bool{
+		func(s string) bool {
+			return matchOpener(s) != nil
+		},
+	}
 
-func containsWord(s, substr string) bool {
-	s = strings.ToLower(s)
-	runes := []rune(s)
-	for i := 0; i < len(s); {
-		index := strings.Index(s[i:], substr)
-		if index < 0 {
-			return false
+	arch, ok := archMatches[ev.Architecture()]
+	if !ok {
+		arch = func(s string) bool {
+			return strings.Contains(s, ev.Architecture())
 		}
-		if (index <= 0 || !isAlnum(runes[index-1])) &&
-			(len(s)-1 < index+len(substr) || !isAlnum(runes[index+len(substr)])) {
+	}
+	matchers = append(matchers, arch)
+
+	os, ok := osMatches[ev.OS()]
+	if !ok {
+		os = func(s string) bool {
+			return strings.Contains(s, ev.OS())
+		}
+	}
+	matchers = append(matchers, os)
+
+	for _, matcher := range matchers {
+		if len(assets) == 1 {
+			return assets[0], nil
+		}
+		assets = matchAssets(assets, matcher)
+	}
+	if len(assets) == 0 {
+		return asset, ErrAssetNotFound
+	}
+	return assets[0], nil
+}
+
+func matchAssets(assets []github.ReleaseAsset, matcher func(s string) bool) []github.ReleaseAsset {
+	var res []github.ReleaseAsset
+	for _, asset := range assets {
+		if matcher(asset.GetName()) {
+			res = append(res, asset)
+		}
+	}
+	if len(res) == 0 {
+		return assets
+	}
+	return res
+}
+
+var openers = map[string]archive.Opener{
+	".tar.xz":  archive.OpenTarXz,
+	".tgz":     archive.OpenTarGzip,
+	".tar.gz":  archive.OpenTarGzip,
+	".tar.bz2": archive.OpenTarBzip2,
+	".tar":     archive.OpenTar,
+	".zip":     archive.OpenZip,
+}
+
+func matchOpener(name string) archive.Opener {
+	for suffix, opener := range openers {
+		if strings.HasSuffix(name, suffix) {
+			return opener
+		}
+	}
+	return nil
+}
+
+func containsOneOf(s string, matchList ...string) bool {
+	for _, m := range matchList {
+		if strings.Contains(s, m) {
 			return true
 		}
-		i = index + 1
 	}
 	return false
 }
 
-func MatchArchitecture(s, architecture string) bool {
-	if containsWord(s, architecture) {
-		return true
+func match386(s string) bool {
+	if strings.Contains(s, "x86_64") {
+		return false
 	}
-	for _, alias := range archAliases[architecture] {
-		if containsWord(s, alias) {
-			return true
-		}
-	}
-	return false
+	return containsOneOf(s, "386", "686", "linux32", "x86")
 }
 
-var osAliases = map[string][]string{
-	"darwin":  {"osx", "mac", "macintosh"},
-	"windows": {"win"},
+func matchAMD64(s string) bool {
+	return containsOneOf(s, "x86_64", "amd64", "intel", "linux64")
 }
 
-func MatchOS(s, os string) bool {
-	if containsWord(s, os) {
-		return true
-	}
-	for _, alias := range osAliases[os] {
-		if containsWord(s, alias) {
-			return true
-		}
-	}
-	return false
+func matchARM64(s string) bool {
+	return containsOneOf(s, "aarch64", "arm64")
+}
+
+var archMatches = map[string]func(string) bool{
+	"386":   match386,
+	"amd64": matchAMD64,
+	"arm64": matchARM64,
+}
+
+func matchLinux(s string) bool {
+	return strings.Contains(s, "linux")
+}
+
+func matchDarwin(s string) bool {
+	return containsOneOf(s, "darwin", "mac", "osx", "os-x")
+}
+
+func matchWindows(s string) bool {
+	return containsOneOf(s, "windows|-win|_win|win64|win32")
+}
+
+var osMatches = map[string]func(s string) bool{
+	"linux":   matchLinux,
+	"darwin":  matchDarwin,
+	"windows": matchWindows,
 }
