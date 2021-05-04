@@ -7,7 +7,7 @@ import (
 	"github.com/kyoh86/gordon/internal/hub"
 )
 
-var TokenManager = hub.NewKeyring
+var TokenManager = hub.NewFileForHost
 
 func ConfigGetAll(_ Env, cfg *env.Config) error {
 	for _, name := range env.OptionNames() {

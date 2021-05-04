@@ -1,14 +1,9 @@
 package hub
 
 import (
-	"errors"
+	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
-
-	"github.com/99designs/keyring"
-	"github.com/kyoh86/gordon/internal/cli"
-	"github.com/kyoh86/xdg"
 )
 
 type TokenManager interface {
@@ -17,90 +12,91 @@ type TokenManager interface {
 	DeleteGithubToken(user string) error
 }
 
-const keySeparator = "\U000F0000" // Unicode Private Use Area
-
 type MemoryTokenManager struct {
-	Host string
-	m    map[string]string
+	m map[string]string
 }
 
-func NewMemory(host string) (TokenManager, error) {
-	return &MemoryTokenManager{Host: host, m: map[string]string{}}, nil
+func NewMemory(s string) (TokenManager, error) {
+	return &MemoryTokenManager{m: map[string]string{}}, nil
 }
 
 func (m *MemoryTokenManager) SetGithubToken(user, token string) error {
-	m.m[m.Host+keySeparator+user] = token
+	m.m[user] = token
 	return nil
 }
 
 func (m *MemoryTokenManager) GetGithubToken(user string) (string, error) {
-	return m.m[m.Host+keySeparator+user], nil
+	return m.m[user], nil
 }
 
 func (m *MemoryTokenManager) DeleteGithubToken(user string) error {
-	delete(m.m, m.Host+keySeparator+user)
+	delete(m.m, user)
 	return nil
 }
 
-type Keyring struct {
-	ring keyring.Keyring
+type FileTokenManager struct {
+	file string
 }
 
-const (
-	KeyringService = "gordon.kyoh86.dev"
-	KeyringFileDir = "gordon"
-)
-
-func NewKeyring(host string) (TokenManager, error) {
-	if host == "" {
-		return nil, errors.New("host is empty")
-	}
-	serviceName := strings.Join([]string{host, KeyringService}, ".")
-	ring, err := keyring.Open(keyring.Config{
-		ServiceName: serviceName,
-
-		FileDir:          filepath.Join(xdg.CacheHome(), KeyringFileDir, "keyring", host),
-		FilePasswordFunc: keyring.PromptFunc(cli.AskPassword),
-
-		KeychainName:         serviceName,
-		KeychainPasswordFunc: keyring.PromptFunc(cli.AskPassword),
-
-		PassDir: filepath.Join(xdg.CacheHome(), KeyringFileDir, "pass", host),
-	})
+func NewFileForHost(host string) (TokenManager, error) {
+	cache, err := os.UserCacheDir()
 	if err != nil {
 		return nil, err
 	}
-	return &Keyring{ring: ring}, nil
+	dir := filepath.Join(cache, "gordon")
+	os.MkdirAll(dir, 0755)
+	file := filepath.Join(dir, host+"_tokens.json")
+	return NewFile(file)
 }
 
-func (m *Keyring) SetGithubToken(user, token string) error {
-	if user == "" {
-		return errors.New("user is empty")
-	}
-	return m.ring.Set(keyring.Item{
-		Key:  user,
-		Data: []byte(token),
-	})
+func NewFile(file string) (TokenManager, error) {
+	return &FileTokenManager{file: file}, nil
 }
 
-func (m *Keyring) GetGithubToken(user string) (string, error) {
-	if user == "" {
-		return "", errors.New("user is empty")
-	}
-	envar := os.Getenv("GORDON_GITHUB_TOKEN")
-	if envar != "" {
-		return envar, nil
-	}
-	item, err := m.ring.Get(user)
+func readFile(file string) (map[string]string, error) {
+	fp, err := os.Open(file)
 	if err != nil {
-		if errors.Is(err, keyring.ErrKeyNotFound) {
-			return "", nil
-		}
+		return nil, err
+	}
+	defer fp.Close()
+	var m map[string]string
+	if err := json.NewDecoder(fp).Decode(&m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func writeFile(file string, m map[string]string) error {
+	fp, err := os.OpenFile(file, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	return json.NewEncoder(fp).Encode(m)
+}
+
+func (m *FileTokenManager) SetGithubToken(user, token string) error {
+	obj, err := readFile(m.file)
+	if err != nil {
+		return err
+	}
+	obj[user] = token
+	return writeFile(m.file, obj)
+}
+
+func (m *FileTokenManager) GetGithubToken(user string) (string, error) {
+	obj, err := readFile(m.file)
+	if err != nil {
 		return "", err
 	}
-	return string(item.Data), nil
+	return obj[user], nil
 }
 
-func (m *Keyring) DeleteGithubToken(user string) error {
-	return m.ring.Remove(user)
+func (m *FileTokenManager) DeleteGithubToken(user string) error {
+	obj, err := readFile(m.file)
+	if err != nil {
+		return err
+	}
+	delete(obj, user)
+	return writeFile(m.file, obj)
 }
