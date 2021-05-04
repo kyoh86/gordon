@@ -58,6 +58,9 @@ func NewFile(file string) (TokenManager, error) {
 func readFile(file string) (map[string]string, error) {
 	fp, err := os.Open(file)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return map[string]string{}, nil
+		}
 		return nil, err
 	}
 	defer fp.Close()
