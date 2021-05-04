@@ -44,7 +44,9 @@ func NewFileForHost(host string) (TokenManager, error) {
 		return nil, err
 	}
 	dir := filepath.Join(cache, "gordon")
-	os.MkdirAll(dir, 0755)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, err
+	}
 	file := filepath.Join(dir, host+"_tokens.json")
 	return NewFile(file)
 }
