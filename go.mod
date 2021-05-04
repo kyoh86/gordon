@@ -28,5 +28,3 @@ require (
 	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
 )
-
-replace github.com/rjeczalik/interfaces => github.com/kyoh86/interfaces v0.1.2-0.20201103060818-43fd8be1be4d
