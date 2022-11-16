@@ -1,3 +1,22 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+project_name: gordon
+builds:
+  - id: default
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    main: .
+    binary: gordon
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    hooks:
+      post:
+        - make man VERSION={{.Version}} COMMIT={{.ShortCommit}} DATE={{.Date}}
 brews:
   - install: |
       bin.install "gordon"
@@ -8,21 +27,18 @@ brews:
     folder: Formula
     homepage: https://github.com/kyoh86/gordon
     description: GitHub Released binaries manager
-builds:
-  - goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm
-      - arm64
-      - "386"
-    main: .
-    hooks:
-      post:
-        - go get github.com/kyoh86/git-vertag
-        - make man
+    license: MIT
+nfpms:
+  - builds:
+      - default
+    maintainer: kyoh86 <me@kyoh86.dev>
+    homepage: https://github.com/kyoh86/gordon
+    description: GitHub Released binaries manager
+    license: MIT
+    formats:
+      - apk
+      - deb
+      - rpm
 archives:
   - id: gzip
     format: tar.gz
