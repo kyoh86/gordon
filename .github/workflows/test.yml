@@ -36,7 +36,7 @@ jobs:
         with:
           method: "patch"
       - name: Run GoReleaser (dry-run)
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v3
         with:
           args: release --rm-dist --skip-publish --snapshot
   test-diagnostics:
@@ -66,7 +66,7 @@ jobs:
       - name: Take coverage
         run: go test -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Send coverage
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
           files: coverage.txt
@@ -80,7 +80,7 @@ jobs:
       - test-release
     steps:
       - name: Set Check Status Success
-        uses: Sibz/github-status-action@v1.1.1
+        uses: Sibz/github-status-action@v1.1.6
         with:
           context: test-status
           authToken: ${{ secrets.GITHUB_TOKEN }}
