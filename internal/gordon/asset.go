@@ -65,8 +65,9 @@ var openers = map[string]archive.Opener{
 }
 
 func matchOpener(name string) archive.Opener {
+	ln := strings.ToLower(name)
 	for suffix, opener := range openers {
-		if strings.HasSuffix(name, suffix) {
+		if strings.HasSuffix(ln, suffix) {
 			return opener
 		}
 	}
@@ -83,18 +84,18 @@ func containsOneOf(s string, matchList ...string) bool {
 }
 
 func match386(s string) bool {
-	if strings.Contains(s, "x86_64") {
+	if strings.Contains(strings.ToLower(s), "x86_64") {
 		return false
 	}
-	return containsOneOf(s, "386", "686", "linux32", "x86")
+	return containsOneOf(strings.ToLower(s), "386", "686", "linux32", "x86")
 }
 
 func matchAMD64(s string) bool {
-	return containsOneOf(s, "x86_64", "amd64", "intel", "linux64")
+	return containsOneOf(strings.ToLower(s), "x86_64", "amd64", "intel", "linux64")
 }
 
 func matchARM64(s string) bool {
-	return containsOneOf(s, "aarch64", "arm64")
+	return containsOneOf(strings.ToLower(s), "aarch64", "arm64")
 }
 
 var archMatches = map[string]func(string) bool{
@@ -104,15 +105,15 @@ var archMatches = map[string]func(string) bool{
 }
 
 func matchLinux(s string) bool {
-	return strings.Contains(s, "linux")
+	return strings.Contains(strings.ToLower(s), "linux")
 }
 
 func matchDarwin(s string) bool {
-	return containsOneOf(s, "darwin", "mac", "osx", "os-x")
+	return containsOneOf(strings.ToLower(s), "darwin", "mac", "osx", "os-x")
 }
 
 func matchWindows(s string) bool {
-	return containsOneOf(s, "windows|-win|_win|win64|win32")
+	return containsOneOf(strings.ToLower(s), "windows|-win|_win|win64|win32")
 }
 
 var osMatches = map[string]func(s string) bool{
