@@ -197,6 +197,7 @@ func update(app *kingpin.Application) (string, func() error) {
 		allSet  bool
 	)
 	cmd := app.Command("update", "Update installed applications")
+	cmd.Alias("upgrade")
 	cmd.Flag("all", "Update all apps").Action(setAct(&allSet)).BoolVar(&all)
 	cmd.Arg("app", "Target app (<owner>/<name>)").Action(setAct(&specSet)).SetValue(&spec)
 	return mainutil.WrapCommand(cmd, func(ev command.Env) error {
