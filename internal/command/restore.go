@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/google/go-github/v29/github"
@@ -42,10 +43,15 @@ func Restore(ctx context.Context, ev Env, bundle string) error {
 	}
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
-		if _, exist := uniq[scanner.Text()]; exist {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "#") {
+			// ignore comment lines
 			continue
 		}
-		if err := restoreOne(ctx, ev, client, scanner.Text()); err != nil {
+		if _, exist := uniq[line]; exist {
+			continue
+		}
+		if err := restoreOne(ctx, ev, client, line); err != nil {
 			log.Printf("error: failed to restore %s: %s", scanner.Text(), err)
 		}
 	}

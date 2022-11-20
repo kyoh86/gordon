@@ -28,6 +28,7 @@ func Dump(ev Env, bundleFile string) error {
 	sort.Slice(versions, func(i, j int) bool {
 		return versions[i].String() < versions[j].String()
 	})
+	fmt.Fprintln(writer, "# call `gordon restore` to re-install bellow.")
 	for _, ver := range versions {
 		fmt.Fprintln(writer, ver)
 	}
