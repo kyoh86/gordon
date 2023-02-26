@@ -9,7 +9,6 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/goccy/go-yaml v1.9.8
 	github.com/golang/mock v1.4.4
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
