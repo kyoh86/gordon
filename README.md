@@ -29,7 +29,7 @@ CAUTION: now its version is 0.x (not stable).
 ## Install
 
 ```console
-$ go get github.com/kyoh86/gordon@latest
+$ go install github.com/kyoh86/gordon@latest
 ```
 
 If you see this error:
@@ -40,7 +40,7 @@ then run
 ```
 
 ```console
-$ GO111MODULE=on go get github.com/kyoh86/gordon@latest
+$ GO111MODULE=on go install github.com/kyoh86/gordon@latest
 ```
 
 And you should setup shell in `.bashrc` or `.zshrc`.
