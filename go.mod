@@ -19,7 +19,7 @@ require (
 	github.com/morikuni/aec v1.0.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/saracen/walker v0.1.3
-	github.com/stoewer/go-strcase v1.2.1
+	github.com/stoewer/go-strcase v1.3.0
 	github.com/stretchr/testify v1.8.2
 	github.com/ulikunitz/xz v0.5.11
 	golang.org/x/crypto v0.6.0 // indirect
