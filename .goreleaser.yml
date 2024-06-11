@@ -21,10 +21,10 @@ brews:
   - install: |
       bin.install "gordon"
       man1.install Dir.glob('gordon*.1')
-    tap:
+    repository:
       owner: kyoh86
       name: homebrew-tap
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/kyoh86/gordon
     description: GitHub Released binaries manager
     license: MIT
