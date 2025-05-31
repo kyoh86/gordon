@@ -25,6 +25,9 @@ func main() {
 	log.SetFlags(0)
 	log.SetOutput(os.Stderr)
 
+	log.Println("gordon is deprecated and no longer maintained.")
+	log.Println("See https://github.com/kyoh86/gordon for details.")
+
 	app := kingpin.New("gordon", "GO Released binaries DOwNloader").
 		Version(fmt.Sprintf("%s-%s (%s)", version, commit, date)).Author("kyoh86")
 	app.Command("config", "Get and set options")

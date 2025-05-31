@@ -1,5 +1,9 @@
 # gordon
 
+> [!CAUTION]
+> This project is discontinued.
+> You can use [mise](https://mise.jdx.dev/) with [Go backend](https://mise.jdx.dev/dev-tools/backends/go.html) instead.
+
 GitHub Released binaries manager
 
 [![PkgGoDev](https://pkg.go.dev/badge/kyoh86/gordon)](https://pkg.go.dev/kyoh86/gordon)
